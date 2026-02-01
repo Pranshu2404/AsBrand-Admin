@@ -7,6 +7,9 @@ import '../../order/order_screen.dart';
 import '../../posters/poster_screen.dart';
 import '../../variants/variants_screen.dart';
 import '../../variants_type/variants_type_screen.dart';
+import '../../emi_plans/emi_plans_screen.dart';
+import '../../kyc/kyc_screen.dart';
+import '../../users/users_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -49,6 +52,15 @@ class MainScreenProvider extends ChangeNotifier{
         break;
       case 'Notifications':
         selectedScreen = NotificationScreen();
+        break;
+      case 'EmiPlans':
+        selectedScreen = const EmiPlansScreen();
+        break;
+      case 'Kyc':
+        selectedScreen = const KycScreen();
+        break;
+      case 'Users':
+        selectedScreen = const UsersScreen();
         break;
       default:
         selectedScreen = DashboardScreen();

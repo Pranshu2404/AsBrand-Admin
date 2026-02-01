@@ -87,6 +87,32 @@ class SideMenu extends StatelessWidget {
               context.mainScreenProvider.navigateToScreen('Notifications');
             },
           ),
+          const Divider(color: Colors.white24, height: 1),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text("BNPL & Users", style: TextStyle(color: Colors.white38, fontSize: 12)),
+          ),
+          DrawerListTile(
+            title: "EMI Plans",
+            svgSrc: "assets/icons/menu_setting.svg",
+            press: () {
+              context.mainScreenProvider.navigateToScreen('EmiPlans');
+            },
+          ),
+          DrawerListTile(
+            title: "KYC Management",
+            svgSrc: "assets/icons/menu_doc.svg",
+            press: () {
+              context.mainScreenProvider.navigateToScreen('Kyc');
+            },
+          ),
+          DrawerListTile(
+            title: "Users",
+            svgSrc: "assets/icons/menu_profile.svg",
+            press: () {
+              context.mainScreenProvider.navigateToScreen('Users');
+            },
+          ),
         ],
       ),
     );
