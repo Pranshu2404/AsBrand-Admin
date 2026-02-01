@@ -26,6 +26,27 @@ class DashBoardProvider extends ChangeNotifier {
   TextEditingController productQntCtrl = TextEditingController();
   TextEditingController productPriceCtrl = TextEditingController();
   TextEditingController productOffPriceCtrl = TextEditingController();
+  
+  // New enhanced product fields
+  TextEditingController productSkuCtrl = TextEditingController();
+  TextEditingController productWeightCtrl = TextEditingController();
+  TextEditingController productLengthCtrl = TextEditingController();
+  TextEditingController productWidthCtrl = TextEditingController();
+  TextEditingController productHeightCtrl = TextEditingController();
+  TextEditingController productWarrantyCtrl = TextEditingController();
+  TextEditingController productMetaTitleCtrl = TextEditingController();
+  TextEditingController productMetaDescCtrl = TextEditingController();
+  TextEditingController productTagsCtrl = TextEditingController();
+  TextEditingController productLowStockCtrl = TextEditingController();
+  
+  // New product specifications
+  List<Map<String, String>> productSpecs = [];
+  
+  // Toggle fields
+  bool isFeatured = false;
+  bool isEmiEligible = true;
+  bool isProductActive = true;
+  String stockStatus = 'in_stock';
 
   //? dropdown value
   Category? selectedCategory;
@@ -63,6 +84,7 @@ class DashBoardProvider extends ChangeNotifier {
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
+        'sku': productSkuCtrl.text.isEmpty ? null : productSkuCtrl.text,
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
         'proBrandId': selectedBrand?.sId ?? '',
@@ -73,6 +95,25 @@ class DashBoardProvider extends ChangeNotifier {
         'quantity': productQntCtrl.text,
         'proVariantTypeId': selectedVariantType?.sId,
         'proVariantId': selectedVariants,
+        // New enhanced fields
+        'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
+        'dimensions': {
+          'length': double.tryParse(productLengthCtrl.text) ?? 0,
+          'width': double.tryParse(productWidthCtrl.text) ?? 0,
+          'height': double.tryParse(productHeightCtrl.text) ?? 0,
+        },
+        'stockStatus': stockStatus,
+        'lowStockThreshold': int.tryParse(productLowStockCtrl.text) ?? 10,
+        'tags': productTagsCtrl.text.isEmpty 
+            ? [] 
+            : productTagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList(),
+        'specifications': productSpecs,
+        'warranty': productWarrantyCtrl.text,
+        'featured': isFeatured,
+        'emiEligible': isEmiEligible,
+        'isActive': isProductActive,
+        'metaTitle': productMetaTitleCtrl.text,
+        'metaDescription': productMetaDescCtrl.text,
       };
 
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
@@ -118,6 +159,7 @@ class DashBoardProvider extends ChangeNotifier {
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
+        'sku': productSkuCtrl.text.isEmpty ? null : productSkuCtrl.text,
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
         'proBrandId': selectedBrand?.sId ?? '',
@@ -128,6 +170,24 @@ class DashBoardProvider extends ChangeNotifier {
         'quantity': productQntCtrl.text,
         'proVariantTypeId': selectedVariantType?.sId ?? '',
         'proVariantId': selectedVariants,
+        'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
+        'dimensions': {
+          'length': double.tryParse(productLengthCtrl.text) ?? 0,
+          'width': double.tryParse(productWidthCtrl.text) ?? 0,
+          'height': double.tryParse(productHeightCtrl.text) ?? 0,
+        },
+        'stockStatus': stockStatus,
+        'lowStockThreshold': int.tryParse(productLowStockCtrl.text) ?? 10,
+        'tags': productTagsCtrl.text.isEmpty 
+            ? [] 
+            : productTagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList(),
+        'specifications': productSpecs,
+        'warranty': productWarrantyCtrl.text,
+        'featured': isFeatured,
+        'emiEligible': isEmiEligible,
+        'isActive': isProductActive,
+        'metaTitle': productMetaTitleCtrl.text,
+        'metaDescription': productMetaDescCtrl.text,
       };
 
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
@@ -301,6 +361,27 @@ class DashBoardProvider extends ChangeNotifier {
       productPriceCtrl.text = product.price.toString();
       productOffPriceCtrl.text = '${product.offerPrice}';
       productQntCtrl.text = '${product.quantity}';
+      
+      // New enhanced fields
+      productSkuCtrl.text = product.sku ?? '';
+      productWeightCtrl.text = '${product.weight ?? 0}';
+      productLengthCtrl.text = '${product.dimensions?.length ?? 0}';
+      productWidthCtrl.text = '${product.dimensions?.width ?? 0}';
+      productHeightCtrl.text = '${product.dimensions?.height ?? 0}';
+      productWarrantyCtrl.text = product.warranty ?? '';
+      productMetaTitleCtrl.text = product.metaTitle ?? '';
+      productMetaDescCtrl.text = product.metaDescription ?? '';
+      productTagsCtrl.text = product.tags?.join(', ') ?? '';
+      productLowStockCtrl.text = '${product.lowStockThreshold ?? 10}';
+      
+      // Toggle fields
+      isFeatured = product.featured ?? false;
+      isEmiEligible = product.emiEligible ?? true;
+      isProductActive = product.isActive ?? true;
+      stockStatus = product.stockStatus ?? 'in_stock';
+      
+      // Specifications
+      productSpecs = product.specifications?.map((s) => {'key': s.key ?? '', 'value': s.value ?? ''}).toList() ?? [];
 
       selectedCategory = _dataProvider.categories.firstWhereOrNull(
           (element) => element.sId == product.proCategoryId?.sId);
@@ -343,6 +424,25 @@ class DashBoardProvider extends ChangeNotifier {
     productPriceCtrl.clear();
     productOffPriceCtrl.clear();
     productQntCtrl.clear();
+    
+    // Clear new enhanced fields
+    productSkuCtrl.clear();
+    productWeightCtrl.clear();
+    productLengthCtrl.clear();
+    productWidthCtrl.clear();
+    productHeightCtrl.clear();
+    productWarrantyCtrl.clear();
+    productMetaTitleCtrl.clear();
+    productMetaDescCtrl.clear();
+    productTagsCtrl.clear();
+    productLowStockCtrl.clear();
+    
+    // Reset toggle fields
+    isFeatured = false;
+    isEmiEligible = true;
+    isProductActive = true;
+    stockStatus = 'in_stock';
+    productSpecs = [];
 
     selectedMainImage = null;
     selectedSecondImage = null;

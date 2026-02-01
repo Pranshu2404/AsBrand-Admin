@@ -7,6 +7,9 @@ import '../../order/order_screen.dart';
 import '../../posters/poster_screen.dart';
 import '../../variants/variants_screen.dart';
 import '../../variants_type/variants_type_screen.dart';
+import '../../emi_plans/emi_plans_screen.dart';
+import '../../kyc/kyc_screen.dart';
+import '../../users/users_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,14 +18,15 @@ import '../../sub_category/sub_category_screen.dart';
 
 class MainScreenProvider extends ChangeNotifier{
   Widget selectedScreen = DashboardScreen();
-
+  String currentScreenName = 'Dashboard';
 
 
   navigateToScreen(String screenName) {
+    currentScreenName = screenName;
     switch (screenName) {
       case 'Dashboard':
         selectedScreen = DashboardScreen();
-        break; // Break statement needed here
+        break;
       case 'Category':
         selectedScreen = CategoryScreen();
         break;
@@ -50,7 +54,17 @@ class MainScreenProvider extends ChangeNotifier{
       case 'Notifications':
         selectedScreen = NotificationScreen();
         break;
+      case 'EmiPlans':
+        selectedScreen = const EmiPlansScreen();
+        break;
+      case 'Kyc':
+        selectedScreen = const KycScreen();
+        break;
+      case 'Users':
+        selectedScreen = const UsersScreen();
+        break;
       default:
+        currentScreenName = 'Dashboard';
         selectedScreen = DashboardScreen();
     }
     notifyListeners();
