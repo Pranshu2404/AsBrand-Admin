@@ -73,7 +73,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     Tab(text: 'Basic Info', icon: Icon(Icons.info_outline, size: 18)),
                     Tab(text: 'Pricing', icon: Icon(Icons.attach_money, size: 18)),
                     Tab(text: 'Inventory', icon: Icon(Icons.inventory_2_outlined, size: 18)),
-                    Tab(text: 'Details', icon: Icon(Icons.list_alt, size: 18)),
+                    Tab(text: 'Clothing', icon: Icon(Icons.checkroom, size: 18)),
                     Tab(text: 'Media', icon: Icon(Icons.image_outlined, size: 18)),
                     Tab(text: 'SEO', icon: Icon(Icons.search, size: 18)),
                   ],
@@ -507,16 +507,162 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
     );
   }
 
-  // Tab 4: Details
+  // Tab 4: Clothing Details
   Widget _buildDetailsTab(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _sectionHeader('Clothing Attributes'),
+          Row(
+            children: [
+              // Gender dropdown
+              Expanded(child: Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    value: dashProvider.selectedGender,
+                    decoration: const InputDecoration(
+                      labelText: 'Gender *',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: DashBoardProvider.genderOptions.map((g) => 
+                      DropdownMenuItem(value: g, child: Text(g))).toList(),
+                    onChanged: (val) {
+                      dashProvider.selectedGender = val;
+                      dashProvider.updateUI();
+                    },
+                    validator: (value) {
+                      if (value == null) return 'Please select gender';
+                      return null;
+                    },
+                  );
+                },
+              )),
+              const Gap(defaultPadding),
+              // Fit dropdown
+              Expanded(child: Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    value: dashProvider.selectedFit,
+                    decoration: const InputDecoration(
+                      labelText: 'Fit',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: DashBoardProvider.fitOptions.map((f) => 
+                      DropdownMenuItem(value: f, child: Text(f))).toList(),
+                    onChanged: (val) {
+                      dashProvider.selectedFit = val;
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              )),
+            ],
+          ),
+          const Gap(defaultPadding),
+          Row(
+            children: [
+              // Pattern dropdown
+              Expanded(child: Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    value: dashProvider.selectedPattern,
+                    decoration: const InputDecoration(
+                      labelText: 'Pattern',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: DashBoardProvider.patternOptions.map((p) => 
+                      DropdownMenuItem(value: p, child: Text(p))).toList(),
+                    onChanged: (val) {
+                      dashProvider.selectedPattern = val;
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              )),
+              const Gap(defaultPadding),
+              // Sleeve Length dropdown
+              Expanded(child: Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    value: dashProvider.selectedSleeveLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Sleeve Length',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: DashBoardProvider.sleeveLengthOptions.map((s) => 
+                      DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    onChanged: (val) {
+                      dashProvider.selectedSleeveLength = val;
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              )),
+            ],
+          ),
+          const Gap(defaultPadding),
+          Row(
+            children: [
+              // Neckline dropdown  
+              Expanded(child: Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    value: dashProvider.selectedNeckline,
+                    decoration: const InputDecoration(
+                      labelText: 'Neckline',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: DashBoardProvider.necklineOptions.map((n) => 
+                      DropdownMenuItem(value: n, child: Text(n))).toList(),
+                    onChanged: (val) {
+                      dashProvider.selectedNeckline = val;
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              )),
+              const Gap(defaultPadding),
+              // Occasion dropdown
+              Expanded(child: Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return DropdownButtonFormField<String>(
+                    value: dashProvider.selectedOccasion,
+                    decoration: const InputDecoration(
+                      labelText: 'Occasion',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: DashBoardProvider.occasionOptions.map((o) => 
+                      DropdownMenuItem(value: o, child: Text(o))).toList(),
+                    onChanged: (val) {
+                      dashProvider.selectedOccasion = val;
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              )),
+            ],
+          ),
+          
+          const Gap(defaultPadding * 2),
+          _sectionHeader('Material & Care'),
+          CustomTextField(
+            controller: context.dashBoardProvider.productMaterialCtrl,
+            labelText: 'Material / Fabric (e.g., 100% Cotton, Polyester Blend)',
+            onSave: (val) {},
+          ),
+          const Gap(defaultPadding),
+          CustomTextField(
+            controller: context.dashBoardProvider.productCareCtrl,
+            labelText: 'Care Instructions (e.g., Machine Wash, Dry Clean Only)',
+            onSave: (val) {},
+          ),
+          
+          const Gap(defaultPadding * 2),
           _sectionHeader('Additional Details'),
           CustomTextField(
             controller: context.dashBoardProvider.productWarrantyCtrl,
-            labelText: 'Warranty Information',
+            labelText: 'Return/Exchange Policy',
             onSave: (val) {},
           ),
           const Gap(defaultPadding),

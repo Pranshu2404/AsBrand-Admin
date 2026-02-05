@@ -48,6 +48,24 @@ class DashBoardProvider extends ChangeNotifier {
   bool isProductActive = true;
   String stockStatus = 'in_stock';
 
+  // Clothing-specific fields
+  TextEditingController productMaterialCtrl = TextEditingController();
+  TextEditingController productCareCtrl = TextEditingController();
+  String? selectedGender;
+  String? selectedFit;
+  String? selectedPattern;
+  String? selectedSleeveLength;
+  String? selectedNeckline;
+  String? selectedOccasion;
+  
+  // Clothing dropdown options
+  static const List<String> genderOptions = ['Men', 'Women', 'Unisex', 'Boys', 'Girls'];
+  static const List<String> fitOptions = ['Regular Fit', 'Slim Fit', 'Relaxed Fit', 'Oversized', 'Skinny Fit'];
+  static const List<String> patternOptions = ['Solid', 'Striped', 'Printed', 'Checked', 'Self Design', 'Graphic', 'Floral', 'Polka Dots'];
+  static const List<String> sleeveLengthOptions = ['Full Sleeve', 'Half Sleeve', 'Sleeveless', '3/4 Sleeve', 'Roll-up Sleeve'];
+  static const List<String> necklineOptions = ['Round Neck', 'V-Neck', 'Collar', 'Mandarin Collar', 'Crew Neck', 'Polo', 'Scoop Neck'];
+  static const List<String> occasionOptions = ['Casual', 'Formal', 'Party', 'Sports', 'Ethnic', 'Lounge', 'Workwear'];
+
   //? dropdown value
   Category? selectedCategory;
   SubCategory? selectedSubCategory;
@@ -114,6 +132,15 @@ class DashBoardProvider extends ChangeNotifier {
         'isActive': isProductActive,
         'metaTitle': productMetaTitleCtrl.text,
         'metaDescription': productMetaDescCtrl.text,
+        // Clothing-specific fields
+        'gender': selectedGender,
+        'material': productMaterialCtrl.text,
+        'fit': selectedFit,
+        'pattern': selectedPattern,
+        'sleeveLength': selectedSleeveLength,
+        'neckline': selectedNeckline,
+        'occasion': selectedOccasion,
+        'careInstructions': productCareCtrl.text,
       };
 
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
@@ -188,6 +215,15 @@ class DashBoardProvider extends ChangeNotifier {
         'isActive': isProductActive,
         'metaTitle': productMetaTitleCtrl.text,
         'metaDescription': productMetaDescCtrl.text,
+        // Clothing-specific fields
+        'gender': selectedGender,
+        'material': productMaterialCtrl.text,
+        'fit': selectedFit,
+        'pattern': selectedPattern,
+        'sleeveLength': selectedSleeveLength,
+        'neckline': selectedNeckline,
+        'occasion': selectedOccasion,
+        'careInstructions': productCareCtrl.text,
       };
 
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
@@ -383,6 +419,16 @@ class DashBoardProvider extends ChangeNotifier {
       // Specifications
       productSpecs = product.specifications?.map((s) => {'key': s.key ?? '', 'value': s.value ?? ''}).toList() ?? [];
 
+      // Clothing-specific fields
+      productMaterialCtrl.text = product.material ?? '';
+      productCareCtrl.text = product.careInstructions ?? '';
+      selectedGender = product.gender;
+      selectedFit = product.fit;
+      selectedPattern = product.pattern;
+      selectedSleeveLength = product.sleeveLength;
+      selectedNeckline = product.neckline;
+      selectedOccasion = product.occasion;
+
       selectedCategory = _dataProvider.categories.firstWhereOrNull(
           (element) => element.sId == product.proCategoryId?.sId);
 
@@ -443,6 +489,16 @@ class DashBoardProvider extends ChangeNotifier {
     isProductActive = true;
     stockStatus = 'in_stock';
     productSpecs = [];
+
+    // Clear clothing fields
+    productMaterialCtrl.clear();
+    productCareCtrl.clear();
+    selectedGender = null;
+    selectedFit = null;
+    selectedPattern = null;
+    selectedSleeveLength = null;
+    selectedNeckline = null;
+    selectedOccasion = null;
 
     selectedMainImage = null;
     selectedSecondImage = null;

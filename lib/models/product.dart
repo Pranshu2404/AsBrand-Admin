@@ -39,6 +39,16 @@ class Product {
   String? metaTitle;
   String? metaDescription;
   
+  // Clothing-specific fields
+  String? gender;         // Men, Women, Unisex, Boys, Girls
+  String? material;       // Cotton, Polyester, Silk, etc.
+  String? fit;            // Regular, Slim, Relaxed, Oversized
+  String? pattern;        // Solid, Striped, Printed, Checked
+  String? sleeveLength;   // Full, Half, Sleeveless, 3-Quarter
+  String? neckline;       // Round, V-Neck, Collar, Mandarin
+  String? occasion;       // Casual, Formal, Party, Sports
+  String? careInstructions; // Machine Wash, Dry Clean, Hand Wash
+  
   // Media
   List<Images>? images;
   
@@ -71,6 +81,15 @@ class Product {
     this.isActive,
     this.metaTitle,
     this.metaDescription,
+    // Clothing fields
+    this.gender,
+    this.material,
+    this.fit,
+    this.pattern,
+    this.sleeveLength,
+    this.neckline,
+    this.occasion,
+    this.careInstructions,
     this.images,
     this.createdAt,
     this.updatedAt,
@@ -120,6 +139,15 @@ class Product {
     isActive = json['isActive'] ?? true;
     metaTitle = json['metaTitle'];
     metaDescription = json['metaDescription'];
+    // Clothing fields
+    gender = json['gender'];
+    material = json['material'];
+    fit = json['fit'];
+    pattern = json['pattern'];
+    sleeveLength = json['sleeveLength'];
+    neckline = json['neckline'];
+    occasion = json['occasion'];
+    careInstructions = json['careInstructions'];
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
@@ -159,6 +187,15 @@ class Product {
     data['isActive'] = isActive;
     data['metaTitle'] = metaTitle;
     data['metaDescription'] = metaDescription;
+    // Clothing fields
+    data['gender'] = gender;
+    data['material'] = material;
+    data['fit'] = fit;
+    data['pattern'] = pattern;
+    data['sleeveLength'] = sleeveLength;
+    data['neckline'] = neckline;
+    data['occasion'] = occasion;
+    data['careInstructions'] = careInstructions;
     if (images != null) data['images'] = images!.map((v) => v.toJson()).toList();
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
