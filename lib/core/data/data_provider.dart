@@ -68,6 +68,7 @@ class DataProvider extends ChangeNotifier {
     getAllVariant();
     getAllPosters();
     getAllCoupons();
+    getAllOrders();
   }
 
   //TODO: should complete getAllCategory
@@ -383,10 +384,39 @@ class DataProvider extends ChangeNotifier {
   //TODO: should complete filterNotifications
 
   //TODO: should complete getAllOrders
+  Future<List<Order>> getAllOrders({bool showSnack = false}) async {
+    try {
+      Response response = await service.getItems(endpointUrl: 'orders');
+      if (response.isOk) {
+        ApiResponse<List<Order>> apiResponse =
+            ApiResponse<List<Order>>.fromJson(
+          response.body,
+          (json) =>
+              (json as List).map((item) => Order.fromJson(item)).toList(),
+        );
+        _allOrders = apiResponse.data ?? [];
+        _filteredOrders = List.from(_allOrders);
+        notifyListeners();
+        if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      }
+    } catch (e) {
+      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
+    }
+    return _filteredOrders;
+  }
 
   //TODO: should complete filterOrders
-
-  //TODO: should complete calculateOrdersWithStatus
+  void filterOrders(String keyword) {
+    if (keyword.isEmpty || keyword.toLowerCase() == 'all order') {
+      _filteredOrders = List.from(_allOrders);
+    } else {
+      final lowerKeyword = keyword.toLowerCase();
+      _filteredOrders = _allOrders.where((order) {
+        return (order.orderStatus ?? '').toLowerCase().contains(lowerKeyword);
+      }).toList();
+    }
+    notifyListeners();
+  }
 
   //TODO: should complete filterProductsByQuantity
   void filterProductsByQuantity(String productQntType) {

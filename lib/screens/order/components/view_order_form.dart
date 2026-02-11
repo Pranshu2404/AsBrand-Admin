@@ -49,6 +49,8 @@ class OrderSubmitForm extends StatelessWidget {
               addressSection(),
               Gap(10),
               paymentDetailsSection(),
+              Gap(10),
+              deliveryDetailsSection(context),
               formRow(
                 'Order Status:',
                 Consumer<OrderProvider>(
@@ -158,20 +160,137 @@ class OrderSubmitForm extends StatelessWidget {
             ),
           ),
           formRow('Payment Method:', Text(order?.paymentMethod ?? 'N/A', style: TextStyle(fontSize: 16))),
+          formRow('Payment Status:', _buildStatusChip(order?.paymentStatus ?? 'N/A', _getPaymentStatusColor(order?.paymentStatus))),
           formRow('Coupon Code:', Text(order?.couponCode?.couponCode ?? 'N/A', style: TextStyle(fontSize: 16))),
+          formRow('Shipping Charge:',
+              Text('₹${order?.shippingCharge?.toStringAsFixed(2) ?? '0.00'}', style: TextStyle(fontSize: 16, color: Colors.orangeAccent))),
           formRow('Order Sub Total:',
-              Text('\$${order?.orderTotal?.subtotal?.toStringAsFixed(2) ?? 'N/A'}', style: TextStyle(fontSize: 16))),
+              Text('₹${order?.orderTotal?.subtotal?.toStringAsFixed(2) ?? 'N/A'}', style: TextStyle(fontSize: 16))),
           formRow(
               'Discount:',
-              Text('\$${order?.orderTotal?.discount?.toStringAsFixed(2) ?? 'N/A'}',
+              Text('₹${order?.orderTotal?.discount?.toStringAsFixed(2) ?? 'N/A'}',
                   style: TextStyle(fontSize: 16, color: Colors.red))),
           formRow(
               'Grand Total:',
-              Text('\$${order?.orderTotal?.total?.toStringAsFixed(2) ?? 'N/A'}',
+              Text('₹${order?.orderTotal?.total?.toStringAsFixed(2) ?? 'N/A'}',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
         ],
       ),
     );
+  }
+
+  /// NEW: Delivery Details Section with Generate Shipping button
+  Widget deliveryDetailsSection(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 20),
+      padding: EdgeInsets.all(defaultPadding),
+      decoration: BoxDecoration(
+        color: secondaryColor,
+        border: Border.all(color: Colors.tealAccent.withOpacity(0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Delivery Details',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.tealAccent),
+                ),
+              ),
+              // Generate Shipping Button - only show for paid orders without shipment
+              if (_canGenerateShipment())
+                Consumer<OrderProvider>(
+                  builder: (context, orderProvider, child) {
+                    return ElevatedButton.icon(
+                      onPressed: orderProvider.isShippingLoading
+                          ? null
+                          : () {
+                              orderProvider.generateShipment(order!.sId!);
+                              Navigator.of(context).pop(); // Close dialog
+                            },
+                      icon: orderProvider.isShippingLoading
+                          ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Icon(Icons.local_shipping, size: 18),
+                      label: Text(orderProvider.isShippingLoading ? 'Creating...' : 'Generate Shipping'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.tealAccent.shade700,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+          formRow('Delivery Status:', _buildStatusChip(
+              order?.deliveryStatus ?? 'N/A',
+              _getDeliveryStatusColor(order?.deliveryStatus))),
+          formRow('Delivery Partner:', Text(order?.deliveryPartner ?? 'N/A', style: TextStyle(fontSize: 16))),
+          formRow('Shipment ID:', Text(order?.shipmentId ?? 'N/A', style: TextStyle(fontSize: 16))),
+          formRow('AWB Code:', Text(order?.awbCode ?? 'N/A', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+          formRow('Courier Name:', Text(order?.courierName ?? 'N/A', style: TextStyle(fontSize: 16))),
+          formRow('Est. Delivery:', Text(order?.estimatedDeliveryDate ?? 'N/A', style: TextStyle(fontSize: 16))),
+        ],
+      ),
+    );
+  }
+
+  bool _canGenerateShipment() {
+    return order != null &&
+        order!.sId != null &&
+        order!.paymentStatus == 'paid' &&
+        (order!.shipmentId == null || order!.shipmentId!.isEmpty);
+  }
+
+  Widget _buildStatusChip(String status, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+      ),
+    );
+  }
+
+  Color _getDeliveryStatusColor(String? status) {
+    switch (status) {
+      case 'PENDING': return Colors.grey;
+      case 'CREATED': return Colors.blue;
+      case 'SHIPPED': return Colors.indigo;
+      case 'IN_TRANSIT': return Colors.orange;
+      case 'OUT_FOR_DELIVERY': return Colors.amber;
+      case 'DELIVERED': return Colors.green;
+      default: return Colors.grey;
+    }
+  }
+
+  Color _getPaymentStatusColor(String? status) {
+    switch (status) {
+      case 'paid': return Colors.green;
+      case 'pending': return Colors.orange;
+      case 'created': return Colors.blue;
+      case 'failed': return Colors.red;
+      case 'refunded': return Colors.purple;
+      default: return Colors.grey;
+    }
   }
 
   Widget itemsSection() {
@@ -205,7 +324,7 @@ class OrderSubmitForm extends StatelessWidget {
           SizedBox(height: defaultPadding), // Add some spacing before the total price
           formRow(
             'Total Price:',
-            Text('\$${order?.totalPrice?.toStringAsFixed(2) ?? 'N/A'}',
+            Text('₹${order?.totalPrice?.toStringAsFixed(2) ?? 'N/A'}',
                 style: TextStyle(fontSize: 16, color: Colors.green)),
           ),
         ],
@@ -225,7 +344,7 @@ class OrderSubmitForm extends StatelessWidget {
         final item = order!.items![index];
         return Padding(
           padding: EdgeInsets.only(bottom: 4.0), // Add spacing between items
-          child: Text('${item.productName}: ${item.quantity} x \$${item.price?.toStringAsFixed(2)}',
+          child: Text('${item.productName}: ${item.quantity} x ₹${item.price?.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 16)),
         );
       },
@@ -247,7 +366,7 @@ class OrderSubmitForm extends StatelessWidget {
           onPressed: () {
             if (Provider.of<OrderProvider>(context, listen: false).orderFormKey.currentState!.validate()) {
               Provider.of<OrderProvider>(context, listen: false).orderFormKey.currentState!.save();
-              //TODO: should complete call updateOrder
+              Provider.of<OrderProvider>(context, listen: false).updateOrder();
               Navigator.of(context).pop();
             }
           },

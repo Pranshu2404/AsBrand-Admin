@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
 import '../../widgets/custom_dropdown.dart';
+import '../../core/data/data_provider.dart';
+import 'package:provider/provider.dart';
 
 class OrderScreen extends StatelessWidget {
   @override
@@ -42,9 +44,9 @@ class OrderScreen extends StatelessWidget {
                               displayItem: (val) => val,
                               onChanged: (newValue) {
                                 if (newValue?.toLowerCase() == 'all order') {
-                                  //TODO: should complete call filterOrders
+                                  Provider.of<DataProvider>(context, listen: false).filterOrders('');
                                 } else {
-                                  //TODO: should complete call filterOrders
+                                  Provider.of<DataProvider>(context, listen: false).filterOrders(newValue ?? '');
                                 }
                               },
                               validator: (value) {
@@ -58,7 +60,7 @@ class OrderScreen extends StatelessWidget {
                           Gap(40),
                           IconButton(
                               onPressed: () {
-                                //TODO: should complete call getAllOrders
+                                Provider.of<DataProvider>(context, listen: false).getAllOrders(showSnack: true);
                               },
                               icon: Icon(Icons.refresh)),
                         ],

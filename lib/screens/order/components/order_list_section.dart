@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../utility/color_list.dart';
 import '../../../models/order.dart';
 import '../../../utility/constants.dart';
+import '../provider/order_provider.dart';
 
 
 class OrderListSection extends StatelessWidget {
@@ -39,13 +40,16 @@ class OrderListSection extends StatelessWidget {
                       label: Text("Customer Name"),
                     ),
                     DataColumn(
-                      label: Text("Order Amount"),
+                      label: Text("Amount"),
                     ),
                     DataColumn(
                       label: Text("Payment"),
                     ),
                     DataColumn(
-                      label: Text("Status"),
+                      label: Text("Order Status"),
+                    ),
+                    DataColumn(
+                      label: Text("Delivery"),
                     ),
                     DataColumn(
                       label: Text("Date"),
@@ -60,7 +64,7 @@ class OrderListSection extends StatelessWidget {
                   rows: List.generate(
                     dataProvider.orders.length,
                     (index) => orderDataRow(dataProvider.orders[index],index+1, delete: () {
-                      //TODO: should complete call deleteOrder
+                      Provider.of<OrderProvider>(context, listen: false).deleteOrder(dataProvider.orders[index]);
                     }, edit: () {
                       showOrderForm(context, dataProvider.orders[index]);
                     }),
@@ -97,9 +101,10 @@ DataRow orderDataRow(Order orderInfo, int index, {Function? edit, Function? dele
           ],
         ),
       ),
-      DataCell(Text('${orderInfo.orderTotal?.total}')),
+      DataCell(Text('₹${orderInfo.orderTotal?.total ?? 0}')),
       DataCell(Text(orderInfo.paymentMethod ?? '')),
       DataCell(Text(orderInfo.orderStatus ?? '')),
+      DataCell(_buildDeliveryChip(orderInfo.deliveryStatus)),
       DataCell(Text(orderInfo.orderDate ?? '')),
       DataCell(IconButton(
           onPressed: () {
@@ -118,5 +123,30 @@ DataRow orderDataRow(Order orderInfo, int index, {Function? edit, Function? dele
             color: Colors.red,
           ))),
     ],
+  );
+}
+
+Widget _buildDeliveryChip(String? status) {
+  Color color;
+  switch (status) {
+    case 'PENDING': color = Colors.grey; break;
+    case 'CREATED': color = Colors.blue; break;
+    case 'SHIPPED': color = Colors.indigo; break;
+    case 'IN_TRANSIT': color = Colors.orange; break;
+    case 'OUT_FOR_DELIVERY': color = Colors.amber; break;
+    case 'DELIVERED': color = Colors.green; break;
+    default: color = Colors.grey;
+  }
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: color, width: 1),
+    ),
+    child: Text(
+      status ?? 'N/A',
+      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+    ),
   );
 }

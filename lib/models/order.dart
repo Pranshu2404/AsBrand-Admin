@@ -12,6 +12,16 @@ class Order {
   String? orderDate;
   int? iV;
 
+  // Delivery fields
+  String? paymentStatus;
+  double? shippingCharge;
+  String? deliveryStatus;
+  String? deliveryPartner;
+  String? shipmentId;
+  String? awbCode;
+  String? courierName;
+  String? estimatedDeliveryDate;
+
   Order(
       {this.shippingAddress,
         this.orderTotal,
@@ -24,7 +34,15 @@ class Order {
         this.couponCode,
         this.trackingUrl,
         this.orderDate,
-        this.iV});
+        this.iV,
+        this.paymentStatus,
+        this.shippingCharge,
+        this.deliveryStatus,
+        this.deliveryPartner,
+        this.shipmentId,
+        this.awbCode,
+        this.courierName,
+        this.estimatedDeliveryDate});
 
   Order.fromJson(Map<String, dynamic> json) {
     shippingAddress = json['shippingAddress'] != null
@@ -51,6 +69,16 @@ class Order {
     trackingUrl = json['trackingUrl'];
     orderDate = json['orderDate'];
     iV = json['__v'];
+
+    // Delivery fields
+    paymentStatus = json['paymentStatus'];
+    shippingCharge = json['shippingCharge']?.toDouble();
+    deliveryStatus = json['deliveryStatus'];
+    deliveryPartner = json['deliveryPartner'];
+    shipmentId = json['shipmentId'];
+    awbCode = json['awbCode'];
+    courierName = json['courierName'];
+    estimatedDeliveryDate = json['estimatedDeliveryDate'];
   }
 
   Map<String, dynamic> toJson() {
@@ -77,6 +105,16 @@ class Order {
     data['trackingUrl'] = this.trackingUrl;
     data['orderDate'] = this.orderDate;
     data['__v'] = this.iV;
+
+    // Delivery fields
+    data['paymentStatus'] = this.paymentStatus;
+    data['shippingCharge'] = this.shippingCharge;
+    data['deliveryStatus'] = this.deliveryStatus;
+    data['deliveryPartner'] = this.deliveryPartner;
+    data['shipmentId'] = this.shipmentId;
+    data['awbCode'] = this.awbCode;
+    data['courierName'] = this.courierName;
+    data['estimatedDeliveryDate'] = this.estimatedDeliveryDate;
     return data;
   }
 }
