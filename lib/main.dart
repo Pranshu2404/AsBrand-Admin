@@ -18,23 +18,33 @@ import 'screens/variants/provider/variant_provider.dart';
 import 'screens/variants_type/provider/variant_type_provider.dart';
 import 'utility/constants.dart';
 import 'utility/extensions.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (context) => DataProvider()),
-    ChangeNotifierProvider(create: (context) => MainScreenProvider()),
-    ChangeNotifierProvider(create: (context) => CategoryProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => SubCategoryProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => BrandProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => VariantsTypeProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => VariantsProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => DashBoardProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => CouponCodeProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => PosterProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => OrderProvider(context.dataProvider)),
-    ChangeNotifierProvider(create: (context) => NotificationProvider(context.dataProvider)),
-  ], child: MyApp()));
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // MUST be first
+  await dotenv.load(fileName: ".env");       // then load env
+  print("ENV URL = ${dotenv.env['MAIN_BACKEND_URL']}");
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => DataProvider()),
+        ChangeNotifierProvider(create: (context) => MainScreenProvider()),
+        ChangeNotifierProvider(create: (context) => CategoryProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => SubCategoryProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => BrandProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => VariantsTypeProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => VariantsProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => DashBoardProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => CouponCodeProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => PosterProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => OrderProvider(context.dataProvider)),
+        ChangeNotifierProvider(create: (context) => NotificationProvider(context.dataProvider)),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
