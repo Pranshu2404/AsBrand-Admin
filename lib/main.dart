@@ -23,7 +23,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // MUST be first
-  await dotenv.load(fileName: ".env");       // then load env
+  await dotenv.load(fileName: "assets/env/.env");
   print("ENV URL = ${dotenv.env['MAIN_BACKEND_URL']}");
 
   runApp(
