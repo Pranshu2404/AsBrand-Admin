@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:admin/services/file_handling/file_service.dart';
 import 'package:admin/models/api_response.dart';
 import 'package:admin/utility/snack_bar_helper.dart';
 
@@ -18,7 +18,7 @@ class CategoryProvider extends ChangeNotifier {
   TextEditingController categoryNameCtrl = TextEditingController();
   Category? categoryForUpdate;
 
-  File? selectedImage;
+  AppFile? selectedImage;
   XFile? imgXFile;
 
   CategoryProvider(this._dataProvider);
@@ -129,7 +129,7 @@ class CategoryProvider extends ChangeNotifier {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      selectedImage = File(image.path);
+      selectedImage = AppFile(image.path);
       imgXFile = image;
       notifyListeners();
     }

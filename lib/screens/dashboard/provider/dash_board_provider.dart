@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:io';
+import 'package:admin/services/file_handling/file_service.dart';
 import 'package:admin/models/api_response.dart';
 import 'package:admin/utility/snack_bar_helper.dart';
 
@@ -56,7 +56,7 @@ class DashBoardProvider extends ChangeNotifier {
   List<String> selectedVariants = [];
 
   Product? productForUpdate;
-  File? selectedMainImage,
+  AppFile? selectedMainImage,
       selectedSecondImage,
       selectedThirdImage,
       selectedFourthImage,
@@ -262,19 +262,19 @@ class DashBoardProvider extends ChangeNotifier {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       if (imageCardNumber == 1) {
-        selectedMainImage = File(image.path);
+        selectedMainImage = AppFile(image.path);
         mainImgXFile = image;
       } else if (imageCardNumber == 2) {
-        selectedSecondImage = File(image.path);
+        selectedSecondImage = AppFile(image.path);
         secondImgXFile = image;
       } else if (imageCardNumber == 3) {
-        selectedThirdImage = File(image.path);
+        selectedThirdImage = AppFile(image.path);
         thirdImgXFile = image;
       } else if (imageCardNumber == 4) {
-        selectedFourthImage = File(image.path);
+        selectedFourthImage = AppFile(image.path);
         fourthImgXFile = image;
       } else if (imageCardNumber == 5) {
-        selectedFifthImage = File(image.path);
+        selectedFifthImage = AppFile(image.path);
         fifthImgXFile = image;
       }
       notifyListeners();

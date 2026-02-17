@@ -1,11 +1,11 @@
-import 'dart:io';
+import 'package:admin/services/file_handling/file_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ProductImageCard extends StatelessWidget {
   final String labelText;
   final String? imageUrlForUpdateImage;
-  final File? imageFile;
+  final AppFile? imageFile;
   final VoidCallback onTap;
   final VoidCallback? onRemoveImage;
 
@@ -40,14 +40,7 @@ class ProductImageCard extends StatelessWidget {
                   if (imageFile != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: kIsWeb
-                          ? Image.network(
-                        imageFile?.path ?? '',
-                        width: double.infinity,
-                        height: 80,
-                        fit: BoxFit.scaleDown,
-                      )
-                          : Image.file(
+                      child: getFileImage(
                         imageFile!,
                         width: double.infinity,
                         height: 80,

@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:io';
+import 'package:admin/services/file_handling/file_service.dart';
 import 'package:admin/models/api_response.dart';
 import 'package:admin/utility/snack_bar_helper.dart';
 
@@ -20,7 +20,7 @@ class PosterProvider extends ChangeNotifier {
   TextEditingController posterNameCtrl = TextEditingController();
   Poster? posterForUpdate;
 
-  File? selectedImage;
+  AppFile? selectedImage;
   XFile? imgXFile;
 
   PosterProvider(this._dataProvider);
@@ -122,7 +122,7 @@ class PosterProvider extends ChangeNotifier {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      selectedImage = File(image.path);
+      selectedImage = AppFile(image.path);
       imgXFile = image;
       notifyListeners();
     }
