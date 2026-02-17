@@ -5,7 +5,10 @@
       "dest": "http://52.70.7.244:3000/$1"
     },
     {
-      "src": "/(.*)",
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
       "dest": "/index.html"
     }
   ]
