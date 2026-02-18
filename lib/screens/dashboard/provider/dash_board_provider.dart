@@ -89,7 +89,27 @@ class DashBoardProvider extends ChangeNotifier {
   List<Brand> brandsBySubCategory = [];
   List<String> variantsByVariantType = [];
 
-  DashBoardProvider(this._dataProvider);
+  DashBoardProvider(this._dataProvider) {
+    productNameCtrl.addListener(updateUI);
+    productPriceCtrl.addListener(updateUI);
+    productQntCtrl.addListener(updateUI);
+  }
+
+  bool get checkProductValidity {
+    bool isBasicValid = productNameCtrl.text.isNotEmpty &&
+        productPriceCtrl.text.isNotEmpty &&
+        productQntCtrl.text.isNotEmpty &&
+        selectedCategory != null &&
+        selectedSubCategory != null &&
+        selectedBrand != null;
+
+    bool isClothingValid = selectedGender != null;
+
+    // If updating, image is already there (or optional). If adding, need main image.
+    bool isImageValid = selectedMainImage != null || productForUpdate != null;
+
+    return isBasicValid && isClothingValid && isImageValid;
+  }
 
   //TODO: should complete addProduct
   addProduct() async {

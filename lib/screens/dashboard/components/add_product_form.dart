@@ -30,6 +30,9 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 6, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.dashBoardProvider.setDataForUpdateProduct(widget.product);
+    });
   }
   
   @override
@@ -41,7 +44,6 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    context.dashBoardProvider.setDataForUpdateProduct(widget.product);
     
     return SingleChildScrollView(
       child: Form(
@@ -113,20 +115,26 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     child: const Text('Cancel'),
                   ),
                   const Gap(defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                    ),
-                    onPressed: () {
-                      if (context.dashBoardProvider.addProductFormKey.currentState!.validate()) {
-                        context.dashBoardProvider.addProductFormKey.currentState!.save();
-                        context.dashBoardProvider.submitProduct();
-                        Navigator.of(context).pop();
-                      }
+                  Consumer<DashBoardProvider>(
+                    builder: (context, provider, child) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        ),
+                        onPressed: provider.checkProductValidity
+                            ? () {
+                                if (provider.addProductFormKey.currentState!.validate()) {
+                                  provider.addProductFormKey.currentState!.save();
+                                  provider.submitProduct();
+                                  Navigator.of(context).pop();
+                                }
+                              }
+                            : null,
+                        child: Text(widget.product != null ? 'Update Product' : 'Create Product'),
+                      );
                     },
-                    child: Text(widget.product != null ? 'Update Product' : 'Create Product'),
                   ),
                 ],
               ),
@@ -170,7 +178,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                   return CustomDropdown(
                     key: ValueKey(dashProvider.selectedCategory?.sId),
                     initialValue: dashProvider.selectedCategory,
-                    hintText: dashProvider.selectedCategory?.name ?? 'Select category',
+                    hintText: dashProvider.selectedCategory?.name ?? 'Select category *',
                     items: context.dataProvider.categories,
                     displayItem: (Category? category) => category?.name ?? '',
                     onChanged: (newValue) {
@@ -190,7 +198,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                 builder: (context, dashProvider, child) {
                   return CustomDropdown(
                     key: ValueKey(dashProvider.selectedSubCategory?.sId),
-                    hintText: dashProvider.selectedSubCategory?.name ?? 'Sub category',
+                    hintText: dashProvider.selectedSubCategory?.name ?? 'Sub category *',
                     items: dashProvider.subCategoriesByCategory,
                     initialValue: dashProvider.selectedSubCategory,
                     displayItem: (SubCategory? subCategory) => subCategory?.name ?? '',
@@ -218,7 +226,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                       key: ValueKey(dashProvider.selectedBrand?.sId),
                       initialValue: dashProvider.selectedBrand,
                       items: dashProvider.brandsBySubCategory,
-                      hintText: dashProvider.selectedBrand?.name ?? 'Select Brand',
+                      hintText: dashProvider.selectedBrand?.name ?? 'Select Brand *',
                       displayItem: (Brand? brand) => brand?.name ?? '',
                       onChanged: (newValue) {
                         if (newValue != null) {
