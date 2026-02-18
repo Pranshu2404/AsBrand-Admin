@@ -7,15 +7,22 @@ import '../../../utility/constants.dart';
 import '../../../models/category.dart';
 import 'add_category_form.dart';
 
-class CategoryListSection extends StatelessWidget {
+class CategoryListSection extends StatefulWidget {
   const CategoryListSection({
     Key? key,
   }) : super(key: key);
 
   @override
+  State<CategoryListSection> createState() => _CategoryListSectionState();
+}
+
+class _CategoryListSectionState extends State<CategoryListSection> {
+  int visibleCount = 10;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.symmetric(vertical: defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -23,40 +30,98 @@ class CategoryListSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "All Categories",
-            style: Theme.of(context).textTheme.titleMedium,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+            child: Text(
+              "All Categories",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
-                  columns: [
-                    DataColumn(
-                      label: Text("Category Name"),
+                final allCategories = dataProvider.categories;
+                final displayedCategories =
+                    allCategories.take(visibleCount).toList();
+
+                return Column(
+                  children: [
+                    DataTable(
+                      //columnSpacing: defaultPadding,
+                      horizontalMargin: 12, // small edge padding
+                      columnSpacing: 230, // BIG spacing between columns
+
+                      // minWidth: 600,
+                      columns: [
+                        DataColumn(
+                          label: Text("Category Name"),
+                        ),
+                        DataColumn(
+                          label: Text("Added Date"),
+                        ),
+                        DataColumn(
+                          label: Text("Edit"),
+                        ),
+                        DataColumn(
+                          label: Text("Delete"),
+                        ),
+                      ],
+                      rows: List.generate(
+                        displayedCategories.length,
+                        (index) => categoryDataRow(displayedCategories[index],
+                            delete: () {
+                          //TODO: should complete call  deleteCategory
+                          context.categoryProvider
+                              .deleteCategory(displayedCategories[index]);
+                        }, edit: () {
+                          showAddCategoryForm(
+                              context, displayedCategories[index]);
+                        }),
+                      ),
                     ),
-                    DataColumn(
-                      label: Text("Added Date"),
-                    ),
-                    DataColumn(
-                      label: Text("Edit"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
+                    const SizedBox(height: defaultPadding),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (visibleCount < allCategories.length)
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: defaultPadding * 1.5,
+                                vertical: defaultPadding / 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                visibleCount += 10;
+                              });
+                            },
+                            child: const Text("See More",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        const SizedBox(width: defaultPadding),
+                        if (visibleCount < allCategories.length)
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: defaultPadding * 1.5,
+                                vertical: defaultPadding / 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                visibleCount = allCategories.length;
+                              });
+                            },
+                            child: const Text("Show All",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                      ],
                     ),
                   ],
-                  rows: List.generate(
-                    dataProvider.categories.length,
-                    (index) => categoryDataRow(dataProvider.categories[index], delete: () {
-                      //TODO: should complete call  deleteCategory
-                      context.categoryProvider.deleteCategory(dataProvider.categories[index]);
-                    }, edit: () {
-                      showAddCategoryForm(context, dataProvider.categories[index]);
-                    }),
-                  ),
                 );
               },
             ),
@@ -77,7 +142,8 @@ DataRow categoryDataRow(Category CatInfo, {Function? edit, Function? delete}) {
               CatInfo.image ?? '',
               height: 30,
               width: 30,
-              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+              errorBuilder: (BuildContext context, Object exception,
+                  StackTrace? stackTrace) {
                 return Icon(Icons.error);
               },
             ),

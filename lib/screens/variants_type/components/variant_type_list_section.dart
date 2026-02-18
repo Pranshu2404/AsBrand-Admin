@@ -10,15 +10,23 @@ import '../../../utility/constants.dart';
 import '../../../models/variant_type.dart';
 
 
-class VariantsTypeListSection extends StatelessWidget {
+class VariantsTypeListSection extends StatefulWidget {
   const VariantsTypeListSection({
     Key? key,
   }) : super(key: key);
 
   @override
+  State<VariantsTypeListSection> createState() =>
+      _VariantsTypeListSectionState();
+}
+
+class _VariantsTypeListSectionState extends State<VariantsTypeListSection> {
+  int visibleCount = 10;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.symmetric(vertical: defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -26,48 +34,104 @@ class VariantsTypeListSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "All Variants Type",
-            style: Theme.of(context).textTheme.titleMedium,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+            child: Text(
+              "All Variants Type",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
-                  columns: [
-                    DataColumn(
-                      label: Text("Variant Name"),
+                final allVariantTypes = dataProvider.variantTypes;
+                final displayedVariantTypes =
+                    allVariantTypes.take(visibleCount).toList();
+
+                return Column(
+                  children: [
+                    DataTable(
+                      //columnSpacing: defaultPadding,
+                      horizontalMargin: 12, // small edge padding
+                      columnSpacing: 150, // BIG spacing between columns
+                      // minWidth: 600,
+                      columns: [
+                        DataColumn(
+                          label: Text("Variant Name"),
+                        ),
+                        DataColumn(
+                          label: Text("Variant Type"),
+                        ),
+                        DataColumn(
+                          label: Text("Added Date"),
+                        ),
+                        DataColumn(
+                          label: Text("Edit"),
+                        ),
+                        DataColumn(
+                          label: Text("Delete"),
+                        ),
+                      ],
+                      rows: List.generate(
+                        displayedVariantTypes.length,
+                        (index) => variantTypeDataRow(
+                          displayedVariantTypes[index],
+                          index + 1,
+                          edit: () {
+                            showAddVariantsTypeForm(
+                                context, displayedVariantTypes[index]);
+                          },
+                          delete: () {
+                            //TODO: should complete call deleteVariantType
+                            context.variantTypeProvider.deleteVariantType(
+                                displayedVariantTypes[index]);
+                          },
+                        ),
+                      ),
                     ),
-                    DataColumn(
-                      label: Text("Variant Type"),
-                    ),
-                    DataColumn(
-                      label: Text("Added Date"),
-                    ),
-                    DataColumn(
-                      label: Text("Edit"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
+                    const SizedBox(height: defaultPadding),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (visibleCount < allVariantTypes.length)
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: defaultPadding * 1.5,
+                                vertical: defaultPadding / 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                visibleCount += 10;
+                              });
+                            },
+                            child: const Text("See More",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        const SizedBox(width: defaultPadding),
+                        if (visibleCount < allVariantTypes.length)
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: defaultPadding * 1.5,
+                                vertical: defaultPadding / 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                visibleCount = allVariantTypes.length;
+                              });
+                            },
+                            child: const Text("Show All",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                      ],
                     ),
                   ],
-                  rows: List.generate(
-                    dataProvider.variantTypes.length,
-                    (index) => variantTypeDataRow(
-                      dataProvider.variantTypes[index],
-                      index + 1,
-                      edit: () {
-                        showAddVariantsTypeForm(context, dataProvider.variantTypes[index]);
-                      },
-                      delete: () {
-                        //TODO: should complete call deleteVariantType
-                        context.variantTypeProvider.deleteVariantType(dataProvider.variantTypes[index]);
-                      },
-                    ),
-                  ),
                 );
               },
             ),

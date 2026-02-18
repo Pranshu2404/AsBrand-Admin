@@ -8,15 +8,22 @@ import '../../../utility/constants.dart';
 import '../provider/order_provider.dart';
 
 
-class OrderListSection extends StatelessWidget {
+class OrderListSection extends StatefulWidget {
   const OrderListSection({
     Key? key,
   }) : super(key: key);
 
   @override
+  State<OrderListSection> createState() => _OrderListSectionState();
+}
+
+class _OrderListSectionState extends State<OrderListSection> {
+  int visibleCount = 10;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: EdgeInsets.symmetric(vertical: defaultPadding),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -24,51 +31,106 @@ class OrderListSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "All Order",
-            style: Theme.of(context).textTheme.titleMedium,
+          Padding(
+             padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+            child: Text(
+              "All Order",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           SizedBox(
             width: double.infinity,
             child: Consumer<DataProvider>(
               builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: defaultPadding,
-                  // minWidth: 600,
-                  columns: [
-                    DataColumn(
-                      label: Text("Customer Name"),
+                final allOrders = dataProvider.orders;
+                final displayedOrders = allOrders.take(visibleCount).toList();
+
+                return Column(
+                  children: [
+                    DataTable(
+                      //columnSpacing: defaultPadding,
+                      horizontalMargin: 12, // small edge padding
+                      columnSpacing: 70, // BIG spacing between columns
+                      // minWidth: 600,
+                      columns: [
+                        DataColumn(
+                          label: Text("Customer Name"),
+                        ),
+                        DataColumn(
+                          label: Text("Amount"),
+                        ),
+                        DataColumn(
+                          label: Text("Payment"),
+                        ),
+                        DataColumn(
+                          label: Text("Order Status"),
+                        ),
+                        DataColumn(
+                          label: Text("Delivery"),
+                        ),
+                        DataColumn(
+                          label: Text("Date"),
+                        ),
+                        DataColumn(
+                          label: Text("Edit"),
+                        ),
+                        DataColumn(
+                          label: Text("Delete"),
+                        ),
+                      ],
+                      rows: List.generate(
+                        displayedOrders.length,
+                        (index) => orderDataRow(
+                            displayedOrders[index], index + 1, delete: () {
+                          Provider.of<OrderProvider>(context, listen: false)
+                              .deleteOrder(displayedOrders[index]);
+                        }, edit: () {
+                          showOrderForm(context, displayedOrders[index]);
+                        }),
+                      ),
                     ),
-                    DataColumn(
-                      label: Text("Amount"),
-                    ),
-                    DataColumn(
-                      label: Text("Payment"),
-                    ),
-                    DataColumn(
-                      label: Text("Order Status"),
-                    ),
-                    DataColumn(
-                      label: Text("Delivery"),
-                    ),
-                    DataColumn(
-                      label: Text("Date"),
-                    ),
-                    DataColumn(
-                      label: Text("Edit"),
-                    ),
-                    DataColumn(
-                      label: Text("Delete"),
+                    const SizedBox(height: defaultPadding),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (visibleCount < allOrders.length)
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: defaultPadding * 1.5,
+                                vertical: defaultPadding / 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                visibleCount += 10;
+                              });
+                            },
+                            child: const Text("See More",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        const SizedBox(width: defaultPadding),
+                        if (visibleCount < allOrders.length)
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: defaultPadding * 1.5,
+                                vertical: defaultPadding / 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                visibleCount = allOrders.length;
+                              });
+                            },
+                            child: const Text("Show All",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                      ],
                     ),
                   ],
-                  rows: List.generate(
-                    dataProvider.orders.length,
-                    (index) => orderDataRow(dataProvider.orders[index],index+1, delete: () {
-                      Provider.of<OrderProvider>(context, listen: false).deleteOrder(dataProvider.orders[index]);
-                    }, edit: () {
-                      showOrderForm(context, dataProvider.orders[index]);
-                    }),
-                  ),
                 );
               },
             ),
