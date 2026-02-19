@@ -124,7 +124,12 @@ class Product {
         ? ProTypeRef.fromJson(json['proVariantTypeId'])
         : null;
     if (json['proVariantId'] != null) {
-      proVariantId = List<String>.from(json['proVariantId']);
+      proVariantId = (json['proVariantId'] as List).map((e) {
+        if (e is Map) {
+          return e['_id']?.toString() ?? '';
+        }
+        return e.toString();
+      }).toList();
     }
     if (json['tags'] != null) {
       tags = List<String>.from(json['tags']);
