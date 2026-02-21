@@ -12,7 +12,9 @@ class SubCategory {
     sId = json['_id'];
     name = json['name'];
     categoryId = json['categoryId'] != null
-        ? new CategoryId.fromJson(json['categoryId'])
+        ? (json['categoryId'] is Map
+            ? new CategoryId.fromJson(json['categoryId'])
+            : CategoryId(sId: json['categoryId'].toString()))
         : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];

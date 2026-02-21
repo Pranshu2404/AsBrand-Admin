@@ -5,4 +5,4 @@ const secondaryColor = Color(0xFF2A2D3E);
 const bgColor = Color(0xFF212332);
 const defaultPadding = 16.0;
 
-const String MAIN_URL = '/api';
+const MAIN_URL = 'http://52.70.7.244:3000';

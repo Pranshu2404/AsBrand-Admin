@@ -16,7 +16,9 @@ class Brand {
     sId = json['_id'];
     name = json['name'];
     subcategoryId = json['subcategoryId'] != null
-        ? new SubcategoryId.fromJson(json['subcategoryId'])
+        ? (json['subcategoryId'] is Map
+            ? new SubcategoryId.fromJson(json['subcategoryId'])
+            : SubcategoryId(sId: json['subcategoryId'].toString()))
         : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];

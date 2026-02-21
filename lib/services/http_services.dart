@@ -10,7 +10,7 @@ class HttpService  {
     try {
       return await GetConnect().get('$baseUrl/$endpointUrl');
     } catch (e) {
-      return Response(body: json.encode({'error': e.toString()}), statusCode: 500);
+      return Response(body: json.encode({'success': false, 'message': e.toString()}), statusCode: 500);
     }
   }
 
@@ -22,7 +22,7 @@ class HttpService  {
       return response;
     } catch (e) {
       print('Error: $e');
-      return Response(body: json.encode({'message': e.toString()}), statusCode: 500);
+      return Response(body: json.encode({'success': false, 'message': e.toString()}), statusCode: 500);
     }
   }
 
@@ -31,7 +31,7 @@ class HttpService  {
     try {
       return await GetConnect().put('$baseUrl/$endpointUrl/$itemId', itemData);
     } catch (e) {
-      return Response(body: json.encode({'message': e.toString()}), statusCode: 500);
+      return Response(body: json.encode({'success': false, 'message': e.toString()}), statusCode: 500);
     }
   }
 
@@ -39,7 +39,7 @@ class HttpService  {
     try {
       return await GetConnect().delete('$baseUrl/$endpointUrl/$itemId');
     } catch (e) {
-      return Response(body: json.encode({'message': e.toString()}), statusCode: 500);
+      return Response(body: json.encode({'success': false, 'message': e.toString()}), statusCode: 500);
     }
   }
 }

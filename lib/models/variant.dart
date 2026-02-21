@@ -16,7 +16,9 @@ class Variant {
     sId = json['_id'];
     name = json['name'];
     variantTypeId = json['variantTypeId'] != null
-        ? new VariantTypeId.fromJson(json['variantTypeId'])
+        ? (json['variantTypeId'] is Map
+            ? new VariantTypeId.fromJson(json['variantTypeId'])
+            : VariantTypeId(sId: json['variantTypeId'].toString()))
         : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];

@@ -37,13 +37,19 @@ class Coupon {
     endDate = json['endDate'];
     status = json['status'];
     applicableCategory = json['applicableCategory'] != null
-        ? new CatRef.fromJson(json['applicableCategory'])
+        ? (json['applicableCategory'] is Map
+            ? new CatRef.fromJson(json['applicableCategory'])
+            : CatRef(sId: json['applicableCategory'].toString()))
         : null;
     applicableSubCategory = json['applicableSubCategory'] != null
-        ? new CatRef.fromJson(json['applicableSubCategory'])
+        ? (json['applicableSubCategory'] is Map
+            ? new CatRef.fromJson(json['applicableSubCategory'])
+            : CatRef(sId: json['applicableSubCategory'].toString()))
         : null;
     applicableProduct = json['applicableProduct'] != null
-        ? new CatRef.fromJson(json['applicableProduct'])
+        ? (json['applicableProduct'] is Map
+            ? new CatRef.fromJson(json['applicableProduct'])
+            : CatRef(sId: json['applicableProduct'].toString()))
         : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];

@@ -112,16 +112,24 @@ class Product {
         ? ProductDimensions.fromJson(json['dimensions'])
         : null;
     proCategoryId = json['proCategoryId'] != null
-        ? ProRef.fromJson(json['proCategoryId'])
+        ? (json['proCategoryId'] is Map
+            ? ProRef.fromJson(json['proCategoryId'])
+            : ProRef(sId: json['proCategoryId'].toString()))
         : null;
     proSubCategoryId = json['proSubCategoryId'] != null
-        ? ProRef.fromJson(json['proSubCategoryId'])
+        ? (json['proSubCategoryId'] is Map
+            ? ProRef.fromJson(json['proSubCategoryId'])
+            : ProRef(sId: json['proSubCategoryId'].toString()))
         : null;
     proBrandId = json['proBrandId'] != null
-        ? ProRef.fromJson(json['proBrandId'])
+        ? (json['proBrandId'] is Map
+            ? ProRef.fromJson(json['proBrandId'])
+            : ProRef(sId: json['proBrandId'].toString()))
         : null;
     proVariantTypeId = json['proVariantTypeId'] != null
-        ? ProTypeRef.fromJson(json['proVariantTypeId'])
+        ? (json['proVariantTypeId'] is Map
+            ? ProTypeRef.fromJson(json['proVariantTypeId'])
+            : ProTypeRef(sId: json['proVariantTypeId'].toString()))
         : null;
     if (json['proVariantId'] != null) {
       proVariantId = (json['proVariantId'] as List).map((e) {

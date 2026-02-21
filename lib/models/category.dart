@@ -8,11 +8,11 @@ class Category {
   Category({this.sId, this.name, this.image, this.createdAt, this.updatedAt});
 
   Category.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    image = json['image'];
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
+    sId = json['_id']?.toString();
+    name = json['name']?.toString();
+    image = json['image'] is String ? json['image'] : json['image']?.toString();
+    createdAt = json['createdAt']?.toString();
+    updatedAt = json['updatedAt']?.toString();
   }
 
   Map<String, dynamic> toJson() {
