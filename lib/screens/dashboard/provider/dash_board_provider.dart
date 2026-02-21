@@ -166,9 +166,9 @@ class DashBoardProvider extends ChangeNotifier {
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
         {'image1': mainImgXFile},
         {'image2': secondImgXFile},
-        {'images': thirdImgXFile},
+        {'image3': thirdImgXFile},
         {'image4': fourthImgXFile},
-        {'images': fifthImgXFile}
+        {'image5': fifthImgXFile}
       ], formData: formDataMap);
 
       if (productForUpdate != null) {
