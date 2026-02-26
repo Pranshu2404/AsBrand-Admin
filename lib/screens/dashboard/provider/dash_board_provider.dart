@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:admin/services/file_handling/file_service.dart';
 import 'package:admin/models/api_response.dart';
@@ -133,14 +134,14 @@ class DashBoardProvider extends ChangeNotifier {
         'quantity': productQntCtrl.text,
         'proVariantTypeId': variantRows.isNotEmpty ? (variantRows.first['variantType'] as VariantType?)?.sId : null,
         'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
-        'proVariants': variantRows
+        'proVariants': jsonEncode(variantRows
             .where((row) => row['variantType'] != null)
             .map((row) => {
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
             })
-            .toList(),
+            .toList()),
         // New enhanced fields
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': {
@@ -225,14 +226,14 @@ class DashBoardProvider extends ChangeNotifier {
         'quantity': productQntCtrl.text,
         'proVariantTypeId': variantRows.isNotEmpty ? (variantRows.first['variantType'] as VariantType?)?.sId ?? '' : '',
         'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
-        'proVariants': variantRows
+        'proVariants': jsonEncode(variantRows
             .where((row) => row['variantType'] != null)
             .map((row) => {
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
             })
-            .toList(),
+            .toList()),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': {
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
