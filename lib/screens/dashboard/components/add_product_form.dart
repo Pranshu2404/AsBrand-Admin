@@ -334,45 +334,75 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
           
           const Gap(defaultPadding * 2),
           _sectionHeader('Variants'),
-          Row(
-            children: [
-              Expanded(
-                child: Consumer<DashBoardProvider>(
-                  builder: (context, dashProvider, child) {
-                    return CustomDropdown(
-                      key: ValueKey(dashProvider.selectedVariantType?.sId),
-                      initialValue: dashProvider.selectedVariantType,
-                      items: context.dataProvider.variantTypes,
-                      displayItem: (VariantType? variantType) => variantType?.name ?? '',
-                      onChanged: (newValue) {
-                        if (newValue != null) {
-                          context.dashBoardProvider.filterVariant(newValue);
-                        }
-                      },
-                      hintText: 'Select Variant type',
+          Consumer<DashBoardProvider>(
+            builder: (context, dashProvider, child) {
+              return Column(
+                children: [
+                  ...dashProvider.variantRows.asMap().entries.map((entry) {
+                    final rowIndex = entry.key;
+                    final row = entry.value;
+                    final VariantType? rowVariantType = row['variantType'] as VariantType?;
+                    final List<String> availableVariants = (row['availableVariants'] as List<String>?) ?? [];
+                    final List<String> selectedVariants = (row['selectedVariants'] as List<String>?) ?? [];
+
+                    // Filter out variant types already used in other rows
+                    final usedIds = dashProvider.getUsedVariantTypeIds(excludeIndex: rowIndex);
+                    final availableTypes = context.dataProvider.variantTypes
+                        .where((vt) => !usedIds.contains(vt.sId))
+                        .toList();
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: defaultPadding),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomDropdown(
+                              key: ValueKey('variant_type_$rowIndex\_${rowVariantType?.sId}'),
+                              initialValue: rowVariantType,
+                              items: availableTypes,
+                              displayItem: (VariantType? variantType) => variantType?.name ?? '',
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  dashProvider.updateVariantTypeForRow(rowIndex, newValue);
+                                }
+                              },
+                              hintText: 'Select Variant type',
+                            ),
+                          ),
+                          const Gap(defaultPadding),
+                          Expanded(
+                            child: MultiSelectDropDown(
+                              key: ValueKey('variant_items_$rowIndex\_${rowVariantType?.sId}'),
+                              items: availableVariants,
+                              onSelectionChanged: (newValue) {
+                                dashProvider.updateSelectedVariantsForRow(rowIndex, newValue);
+                              },
+                              displayItem: (String item) => item,
+                              selectedItems: selectedVariants,
+                            ),
+                          ),
+                          const Gap(8),
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+                            tooltip: 'Remove variant',
+                            onPressed: () => dashProvider.removeVariantRow(rowIndex),
+                          ),
+                        ],
+                      ),
                     );
-                  },
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(
-                child: Consumer<DashBoardProvider>(
-                  builder: (context, dashProvider, child) {
-                    final filteredSelectedItems =
-                        dashProvider.selectedVariants.where((item) => dashProvider.variantsByVariantType.contains(item)).toList();
-                    return MultiSelectDropDown(
-                      items: dashProvider.variantsByVariantType,
-                      onSelectionChanged: (newValue) {
-                        dashProvider.selectedVariants = newValue;
-                        dashProvider.updateUI();
-                      },
-                      displayItem: (String item) => item,
-                      selectedItems: filteredSelectedItems,
-                    );
-                  },
-                ),
-              ),
-            ],
+                  }),
+                  const Gap(8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => dashProvider.addVariantRow(),
+                      icon: const Icon(Icons.add, color: primaryColor),
+                      label: const Text('Add Variant Type', style: TextStyle(color: primaryColor)),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),

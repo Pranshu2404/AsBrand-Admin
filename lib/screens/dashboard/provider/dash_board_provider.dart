@@ -70,8 +70,9 @@ class DashBoardProvider extends ChangeNotifier {
   Category? selectedCategory;
   SubCategory? selectedSubCategory;
   Brand? selectedBrand;
-  VariantType? selectedVariantType;
-  List<String> selectedVariants = [];
+
+  /// Each entry: { 'variantType': VariantType?, 'availableVariants': List<String>, 'selectedVariants': List<String> }
+  List<Map<String, dynamic>> variantRows = [];
 
   Product? productForUpdate;
   AppFile? selectedMainImage,
@@ -87,7 +88,6 @@ class DashBoardProvider extends ChangeNotifier {
 
   List<SubCategory> subCategoriesByCategory = [];
   List<Brand> brandsBySubCategory = [];
-  List<String> variantsByVariantType = [];
 
   DashBoardProvider(this._dataProvider) {
     productNameCtrl.addListener(updateUI);
@@ -131,8 +131,8 @@ class DashBoardProvider extends ChangeNotifier {
             ? productPriceCtrl.text
             : productOffPriceCtrl.text,
         'quantity': productQntCtrl.text,
-        'proVariantTypeId': selectedVariantType?.sId,
-        'proVariantId': selectedVariants,
+        'proVariantTypeId': variantRows.isNotEmpty ? (variantRows.first['variantType'] as VariantType?)?.sId : null,
+        'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
         // New enhanced fields
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': {
@@ -215,8 +215,8 @@ class DashBoardProvider extends ChangeNotifier {
             ? productPriceCtrl.text
             : productOffPriceCtrl.text,
         'quantity': productQntCtrl.text,
-        'proVariantTypeId': selectedVariantType?.sId ?? '',
-        'proVariantId': selectedVariants,
+        'proVariantTypeId': variantRows.isNotEmpty ? (variantRows.first['variantType'] as VariantType?)?.sId ?? '' : '',
+        'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': {
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
@@ -394,18 +394,55 @@ class DashBoardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //TODO: should complete filterVariant
-  filterVariant(VariantType variantType) {
-    selectedVariants = [];
-    selectedVariantType = variantType;
-
-    final newList = _dataProvider.variants
-        .where((variant) => variant.variantTypeId?.sId == variantType.sId)
-        .toList();
-    final List<String> variantNames =
-        newList.map((variant) => variant.name ?? '').toList();
-    variantsByVariantType = variantNames;
+  /// Add a new empty variant row
+  void addVariantRow() {
+    variantRows.add({
+      'variantType': null,
+      'availableVariants': <String>[],
+      'selectedVariants': <String>[],
+    });
     notifyListeners();
+  }
+
+  /// Remove a variant row by index
+  void removeVariantRow(int index) {
+    if (index >= 0 && index < variantRows.length) {
+      variantRows.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  /// Set the variant type for a specific row, filtering available variants
+  void updateVariantTypeForRow(int index, VariantType variantType) {
+    if (index >= 0 && index < variantRows.length) {
+      variantRows[index]['variantType'] = variantType;
+      variantRows[index]['selectedVariants'] = <String>[];
+
+      final filtered = _dataProvider.variants
+          .where((v) => v.variantTypeId?.sId == variantType.sId)
+          .toList();
+      variantRows[index]['availableVariants'] =
+          filtered.map((v) => v.name ?? '').toList();
+      notifyListeners();
+    }
+  }
+
+  /// Update selected variants for a specific row
+  void updateSelectedVariantsForRow(int index, List<String> selected) {
+    if (index >= 0 && index < variantRows.length) {
+      variantRows[index]['selectedVariants'] = selected;
+      notifyListeners();
+    }
+  }
+
+  /// Get variant types already chosen in other rows (to exclude from dropdown)
+  List<String> getUsedVariantTypeIds({int? excludeIndex}) {
+    return variantRows
+        .asMap()
+        .entries
+        .where((e) => e.key != excludeIndex && e.value['variantType'] != null)
+        .map((e) => (e.value['variantType'] as VariantType).sId ?? '')
+        .toList();
   }
 
   setDataForUpdateProduct(Product? product) {
@@ -468,17 +505,20 @@ class DashBoardProvider extends ChangeNotifier {
       selectedBrand = _dataProvider.brands.firstWhereOrNull(
           (element) => element.sId == product.proBrandId?.sId);
 
-      selectedVariantType = _dataProvider.variantTypes.firstWhereOrNull(
+      // Populate variant rows from existing product data
+      variantRows = [];
+      final existingVariantType = _dataProvider.variantTypes.firstWhereOrNull(
           (element) => element.sId == product.proVariantTypeId?.sId);
-
-      final newListVariant = _dataProvider.variants
-          .where((variant) =>
-              variant.variantTypeId?.sId == product.proVariantTypeId?.sId)
-          .toList();
-      final List<String> variantNames =
-          newListVariant.map((variant) => variant.name ?? '').toList();
-      variantsByVariantType = variantNames;
-      selectedVariants = product.proVariantId ?? [];
+      if (existingVariantType != null) {
+        final filteredVariants = _dataProvider.variants
+            .where((v) => v.variantTypeId?.sId == existingVariantType.sId)
+            .toList();
+        variantRows.add({
+          'variantType': existingVariantType,
+          'availableVariants': filteredVariants.map((v) => v.name ?? '').toList(),
+          'selectedVariants': List<String>.from(product.proVariantId ?? []),
+        });
+      }
     } else {
       clearFields();
     }
@@ -535,14 +575,12 @@ class DashBoardProvider extends ChangeNotifier {
     selectedCategory = null;
     selectedSubCategory = null;
     selectedBrand = null;
-    selectedVariantType = null;
-    selectedVariants = [];
+    variantRows = [];
 
     productForUpdate = null;
 
     subCategoriesByCategory = [];
     brandsBySubCategory = [];
-    variantsByVariantType = [];
   }
 
   updateUI() {
