@@ -127,7 +127,11 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                             ? () async {
                                 if (provider.addProductFormKey.currentState!.validate()) {
                                   provider.addProductFormKey.currentState!.save();
-                                  await provider.submitProduct();
+                                  try {
+                                    await provider.submitProduct();
+                                  } catch (e) {
+                                    print('[ProductForm] Submit error: $e');
+                                  }
                                   if (context.mounted) Navigator.of(context).pop();
                                 }
                               }

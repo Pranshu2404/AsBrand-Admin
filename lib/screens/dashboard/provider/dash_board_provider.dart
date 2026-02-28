@@ -120,6 +120,7 @@ class DashBoardProvider extends ChangeNotifier {
     try {
       _isSubmitting = true;
       notifyListeners();
+      print('[Product] Starting addProduct...');
       if (selectedMainImage == null) {
         SnackBarHelper.showErrorSnackBar('Please Choose An Image!');
         return; // Stop the program execution
@@ -177,6 +178,7 @@ class DashBoardProvider extends ChangeNotifier {
         'careInstructions': productCareCtrl.text,
       };
 
+      print('[Product] Building form data with images...');
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
         {'image1': mainImgXFile},
         {'image2': secondImgXFile},
@@ -185,12 +187,10 @@ class DashBoardProvider extends ChangeNotifier {
         {'image5': fifthImgXFile}
       ], formData: formDataMap);
 
-      if (productForUpdate != null) {
-        // This is for update - needs to be handled separately
-      }
-
+      print('[Product] Sending API request...');
       final response =
           await service.addItem(endpointUrl: 'products', itemData: form);
+      print('[Product] API response: status=${response.statusCode} isOk=${response.isOk}');
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
@@ -211,10 +211,10 @@ class DashBoardProvider extends ChangeNotifier {
     } catch (e) {
       print('[Product] Add exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
-      rethrow;
     } finally {
       _isSubmitting = false;
       notifyListeners();
+      print('[Product] addProduct completed, isSubmitting=false');
     }
   }
 
@@ -223,6 +223,7 @@ class DashBoardProvider extends ChangeNotifier {
     try {
       _isSubmitting = true;
       notifyListeners();
+      print('[Product] Starting updateProduct...');
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
@@ -274,6 +275,7 @@ class DashBoardProvider extends ChangeNotifier {
         'careInstructions': productCareCtrl.text,
       };
 
+      print('[Product] Building form data with images...');
       final FormData form = await createFormDataForMultipleImage(imgXFiles: [
         {'image1': mainImgXFile},
         {'image2': secondImgXFile},
@@ -283,10 +285,12 @@ class DashBoardProvider extends ChangeNotifier {
       ], formData: formDataMap);
 
       if (productForUpdate != null) {
+        print('[Product] Sending update API request...');
         final response = await service.updateItem(
             endpointUrl: 'products',
             itemData: form,
             itemId: '${productForUpdate?.sId}');
+        print('[Product] Update API response: status=${response.statusCode} isOk=${response.isOk}');
 
         if (response.isOk) {
           ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
@@ -309,10 +313,10 @@ class DashBoardProvider extends ChangeNotifier {
     } catch (e) {
       print('[Product] Update exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
-      rethrow;
     } finally {
       _isSubmitting = false;
       notifyListeners();
+      print('[Product] updateProduct completed, isSubmitting=false');
     }
   }
 
