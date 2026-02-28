@@ -123,16 +123,25 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                           backgroundColor: primaryColor,
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         ),
-                        onPressed: provider.checkProductValidity
-                            ? () {
+                        onPressed: (provider.checkProductValidity && !provider.isSubmitting)
+                            ? () async {
                                 if (provider.addProductFormKey.currentState!.validate()) {
                                   provider.addProductFormKey.currentState!.save();
-                                  provider.submitProduct();
-                                  Navigator.of(context).pop();
+                                  await provider.submitProduct();
+                                  if (context.mounted) Navigator.of(context).pop();
                                 }
                               }
                             : null,
-                        child: Text(widget.product != null ? 'Update Product' : 'Create Product'),
+                        child: provider.isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(widget.product != null ? 'Update Product' : 'Create Product'),
                       );
                     },
                   ),

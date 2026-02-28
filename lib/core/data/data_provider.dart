@@ -1,3 +1,4 @@
+
 import '../../models/api_response.dart';
 import '../../models/coupon.dart';
 import '../../models/my_notification.dart';
@@ -17,6 +18,17 @@ import '../../models/variant.dart';
 
 class DataProvider extends ChangeNotifier {
   HttpService service = HttpService();
+
+  bool _isLoading = true;
+  bool get isLoading => _isLoading;
+
+  bool _isRefreshing = false;
+  bool get isRefreshing => _isRefreshing;
+
+  void setRefreshing(bool value) {
+    _isRefreshing = value;
+    notifyListeners();
+  }
 
   List<Category> _allCategories = [];
   List<Category> _filteredCategories = [];
@@ -65,15 +77,25 @@ class DataProvider extends ChangeNotifier {
   String get selectedOrderFilter => _selectedOrderFilter;
 
   DataProvider() {
-    getAllProduct();
-    getAllCategory();
-    getAllSubCategory();
-    getAllBrands();
-    getAllVariantType();
-    getAllVariant();
-    getAllPosters();
-    getAllCoupons();
-    getAllOrders();
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    print('[DataProvider] Starting to load all data...');
+    await Future.wait([
+      getAllProduct().catchError((e) { print('[DataProvider] ERROR loading products: $e'); return <Product>[]; }),
+      getAllCategory().catchError((e) { print('[DataProvider] ERROR loading categories: $e'); return <Category>[]; }),
+      getAllSubCategory().catchError((e) { print('[DataProvider] ERROR loading subCategories: $e'); return <SubCategory>[]; }),
+      getAllBrands().catchError((e) { print('[DataProvider] ERROR loading brands: $e'); return <Brand>[]; }),
+      getAllVariantType().catchError((e) { print('[DataProvider] ERROR loading variantTypes: $e'); return <VariantType>[]; }),
+      getAllVariant().catchError((e) { print('[DataProvider] ERROR loading variants: $e'); return <Variant>[]; }),
+      getAllPosters().catchError((e) { print('[DataProvider] ERROR loading posters: $e'); return <Poster>[]; }),
+      getAllCoupons().catchError((e) { print('[DataProvider] ERROR loading coupons: $e'); return <Coupon>[]; }),
+      getAllOrders().catchError((e) { print('[DataProvider] ERROR loading orders: $e'); return <Order>[]; }),
+    ]);
+    _isLoading = false;
+    print('[DataProvider] All data loaded. Products: ${_allProducts.length}, Categories: ${_allCategories.length}, SubCategories: ${_allSubCategories.length}, Brands: ${_allBrands.length}, Variants: ${_allVariants.length}, Orders: ${_allOrders.length}');
+    notifyListeners();
   }
 
   //TODO: should complete getAllCategory
@@ -86,14 +108,17 @@ class DataProvider extends ChangeNotifier {
           response.body,
           (json) =>
               (json as List).map((item) => Category.fromJson(item)).toList(),
-        ); // ApiResponse.fromJson
+        );
         _allCategories = apiResponse.data ?? [];
-        _filteredCategories =
-            List.from(_allCategories); // Initialize filtered list with all data
+        _filteredCategories = List.from(_allCategories);
+        print('[DataProvider] Categories loaded: ${_allCategories.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] Categories API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] Categories exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
@@ -123,14 +148,17 @@ class DataProvider extends ChangeNotifier {
           response.body,
           (json) =>
               (json as List).map((item) => SubCategory.fromJson(item)).toList(),
-        ); // ApiResponse.fromJson
+        );
         _allSubCategories = apiResponse.data ?? [];
-        _filteredSubCategories = List.from(
-            _allSubCategories); // Initialize filtered list with all data
+        _filteredSubCategories = List.from(_allSubCategories);
+        print('[DataProvider] SubCategories loaded: ${_allSubCategories.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] SubCategories API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] SubCategories exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
@@ -159,14 +187,17 @@ class DataProvider extends ChangeNotifier {
             ApiResponse<List<Brand>>.fromJson(
           response.body,
           (json) => (json as List).map((item) => Brand.fromJson(item)).toList(),
-        ); // ApiResponse.fromJson
+        );
         _allBrands = apiResponse.data ?? [];
-        _filteredBrands =
-            List.from(_allBrands); // Initialize filtered list with all data
+        _filteredBrands = List.from(_allBrands);
+        print('[DataProvider] Brands loaded: ${_allBrands.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] Brands API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] Brands exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       return [];
     }
@@ -199,10 +230,14 @@ class DataProvider extends ChangeNotifier {
         );
         _allVariantTypes = apiResponse.data ?? [];
         _filteredVariantTypes = List.from(_allVariantTypes);
+        print('[DataProvider] VariantTypes loaded: ${_allVariantTypes.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] VariantTypes API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] VariantTypes exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
     }
     return _filteredVariantTypes;
@@ -231,14 +266,17 @@ class DataProvider extends ChangeNotifier {
           response.body,
           (json) =>
               (json as List).map((item) => Variant.fromJson(item)).toList(),
-        ); // ApiResponse.fromJson
+        );
         _allVariants = apiResponse.data ?? [];
-        _filteredVariants =
-            List.from(_allVariants); // Initialize filtered list with all data
+        _filteredVariants = List.from(_allVariants);
+        print('[DataProvider] Variants loaded: ${_allVariants.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] Variants API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] Variants exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
@@ -268,9 +306,8 @@ class DataProvider extends ChangeNotifier {
           response.body,
           (json) =>
               (json as List).map((item) => Product.fromJson(item)).toList(),
-        ); // ApiResponse.fromJson
+        );
         _allProducts = apiResponse.data ?? [];
-        // Sort by createdAt descending (newest first)
         _allProducts.sort((a, b) {
           final dateA = DateTime.tryParse(a.createdAt ?? '');
           final dateB = DateTime.tryParse(b.createdAt ?? '');
@@ -279,11 +316,15 @@ class DataProvider extends ChangeNotifier {
           if (dateB == null) return -1;
           return dateB.compareTo(dateA);
         });
-        _filteredProducts = List.from(_allProducts); // Initialize filtered list with all data
+        _filteredProducts = List.from(_allProducts);
+        print('[DataProvider] Products loaded: ${_allProducts.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] Products API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] Products exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
@@ -350,13 +391,16 @@ class DataProvider extends ChangeNotifier {
         );
         _allCoupons = apiResponse.data ?? [];
         _filteredCoupons = List.from(_allCoupons);
+        print('[DataProvider] Coupons loaded: ${_allCoupons.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
       } else {
+        print('[DataProvider] Coupons API error: ${response.statusCode} ${response.statusText}');
         if (showSnack)
           SnackBarHelper.showErrorSnackBar('Failed to fetch coupons');
       }
     } catch (e) {
+      print('[DataProvider] Coupons exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       return [];
     }
@@ -386,13 +430,17 @@ class DataProvider extends ChangeNotifier {
           response.body,
           (json) =>
               (json as List).map((item) => Poster.fromJson(item)).toList(),
-        ); // ApiResponse.fromJson
+        );
         _allPosters = apiResponse.data ?? [];
         _filteredPosters = List.from(_allPosters);
+        print('[DataProvider] Posters loaded: ${_allPosters.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] Posters API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] Posters exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
@@ -429,10 +477,14 @@ class DataProvider extends ChangeNotifier {
         );
         _allOrders = apiResponse.data ?? [];
         _filteredOrders = List.from(_allOrders);
+        print('[DataProvider] Orders loaded: ${_allOrders.length}');
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] Orders API error: ${response.statusCode} ${response.statusText}');
       }
     } catch (e) {
+      print('[DataProvider] Orders exception: $e');
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
     }
     return _filteredOrders;

@@ -48,10 +48,13 @@ class PosterListSection extends StatelessWidget {
                   ],
                   rows: List.generate(
                     dataProvider.posters.length,
-                    (index) => posterDataRow(dataProvider.posters[index], delete: () {
-                      //TODO: should complete call deletePoster
-                      context.posterProvider.deletePoster(dataProvider.posters[index]);
-
+                    (index) => posterDataRow(dataProvider.posters[index], delete: () async {
+                      context.dataProvider.setRefreshing(true);
+                      try {
+                        await context.posterProvider.deletePoster(dataProvider.posters[index]);
+                      } finally {
+                        context.dataProvider.setRefreshing(false);
+                      }
                     }, edit: () {
                       showAddPosterForm(context, dataProvider.posters[index]);
                     }),

@@ -82,10 +82,14 @@ class _SubCategoryListSectionState extends State<SubCategoryListSection> {
                             showAddSubCategoryForm(
                                 context, displayedSubCategories[index]);
                           },
-                          delete: () {
-                            //TODO: should complete call deleteSubCategory
-                            context.subCategoryProvider.deleteSubCategory(
-                                displayedSubCategories[index]);
+                          delete: () async {
+                            context.dataProvider.setRefreshing(true);
+                            try {
+                              await context.subCategoryProvider.deleteSubCategory(
+                                  displayedSubCategories[index]);
+                            } finally {
+                              context.dataProvider.setRefreshing(false);
+                            }
                           },
                         ),
                       ),

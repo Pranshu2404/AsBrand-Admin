@@ -50,7 +50,11 @@ class SubcategoryId {
   SubcategoryId.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
-    categoryId = json['categoryId'];
+    categoryId = json['categoryId'] != null
+        ? (json['categoryId'] is Map
+            ? json['categoryId']['_id']?.toString()
+            : json['categoryId'].toString())
+        : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }

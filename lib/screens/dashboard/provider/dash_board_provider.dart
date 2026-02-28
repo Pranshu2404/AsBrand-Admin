@@ -21,6 +21,9 @@ class DashBoardProvider extends ChangeNotifier {
   final DataProvider _dataProvider;
   final addProductFormKey = GlobalKey<FormState>();
 
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
   //?text editing controllers in dashBoard screen
   TextEditingController productNameCtrl = TextEditingController();
   TextEditingController productDescCtrl = TextEditingController();
@@ -115,6 +118,8 @@ class DashBoardProvider extends ChangeNotifier {
   //TODO: should complete addProduct
   addProduct() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (selectedMainImage == null) {
         SnackBarHelper.showErrorSnackBar('Please Choose An Image!');
         return; // Stop the program execution
@@ -136,7 +141,7 @@ class DashBoardProvider extends ChangeNotifier {
         'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
         'proVariants': jsonEncode(variantRows
             .where((row) => row['variantType'] != null)
-            .map((row) => {
+            .map((row) => <String, dynamic>{
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
@@ -191,27 +196,33 @@ class DashBoardProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          _dataProvider.getAllProduct();
-          log('Product added');
-          clearFields(); // Duplicate line - can be removed
+          print('[Product] Added successfully');
+          _dataProvider.getAllProduct(); // refresh in background
         } else {
+          print('[Product] Add failed: ${apiResponse.message}');
           SnackBarHelper.showErrorSnackBar(
               'Failed to add product: ${apiResponse.message}');
         }
       } else {
+        print('[Product] Add API error: ${response.statusCode} ${response.statusText}');
         SnackBarHelper.showErrorSnackBar(
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
+      print('[Product] Add exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       rethrow;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updateProduct
   updateProduct() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
@@ -228,7 +239,7 @@ class DashBoardProvider extends ChangeNotifier {
         'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
         'proVariants': jsonEncode(variantRows
             .where((row) => row['variantType'] != null)
-            .map((row) => {
+            .map((row) => <String, dynamic>{
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
@@ -282,30 +293,35 @@ class DashBoardProvider extends ChangeNotifier {
           if (apiResponse.success == true) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            log('Product updated');
-            _dataProvider.getAllProduct();
+            print('[Product] Updated successfully');
+            _dataProvider.getAllProduct(); // refresh in background
           } else {
+            print('[Product] Update failed: ${apiResponse.message}');
             SnackBarHelper.showErrorSnackBar(
                 'Failed to update product: ${apiResponse.message}');
           }
         } else {
+          print('[Product] Update API error: ${response.statusCode} ${response.statusText}');
           SnackBarHelper.showErrorSnackBar(
               'Error ${response.body?['message'] ?? response.statusText}');
         }
       }
     } catch (e) {
-      print(e);
+      print('[Product] Update exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       rethrow;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitProduct
-  submitProduct() {
+  Future<void> submitProduct() async {
     if (productForUpdate != null) {
-      updateProduct();
+      await updateProduct();
     } else {
-      addProduct();
+      await addProduct();
     }
   }
 
@@ -318,15 +334,17 @@ class DashBoardProvider extends ChangeNotifier {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Product Deleted Successfully');
-          _dataProvider.getAllProduct();
+          print('[Product] Deleted successfully');
+          _dataProvider.getAllProduct(); // refresh in background
         }
       } else {
+        print('[Product] Delete API error: ${response.statusCode} ${response.statusText}');
         SnackBarHelper.showErrorSnackBar(
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
-      return;
+      print('[Product] Delete exception: $e');
+      SnackBarHelper.showErrorSnackBar('Failed to delete: $e');
     }
   }
 

@@ -3,7 +3,7 @@ import 'package:get/get_connect.dart';
 import 'package:get/get.dart';
 import '../utility/constants.dart';
 
-class HttpService  {
+class HttpService {
   final String baseUrl = MAIN_URL;
 
   Future<Response> getItems({required String endpointUrl}) async {
@@ -14,18 +14,15 @@ class HttpService  {
     }
   }
 
-
   Future<Response> addItem({required String endpointUrl, required dynamic itemData}) async {
     try {
-      final response = await GetConnect().post('$baseUrl/$endpointUrl',itemData);
-      print(response.body);
+      final response = await GetConnect().post('$baseUrl/$endpointUrl', itemData);
       return response;
     } catch (e) {
       print('Error: $e');
       return Response(body: json.encode({'success': false, 'message': e.toString()}), statusCode: 500);
     }
   }
-
 
   Future<Response> updateItem({required String endpointUrl, required String itemId, required dynamic itemData}) async {
     try {

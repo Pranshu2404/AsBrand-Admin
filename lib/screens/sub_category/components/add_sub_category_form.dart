@@ -89,21 +89,25 @@ class SubCategorySubmitForm extends StatelessWidget {
                     child: Text('Cancel'),
                   ),
                   Gap(defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.subCategoryProvider.addSubCategoryFormKey.currentState!.validate()) {
-                        context.subCategoryProvider.addSubCategoryFormKey.currentState!.save();
-                        //TODO: should complete call submitSubCategory
-                        context.subCategoryProvider.submitSubCategory();
-                        Navigator.of(context).pop();
-                      }
+                  Consumer<SubCategoryProvider>(
+                    builder: (context, provider, child) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                        ),
+                        onPressed: provider.isSubmitting ? null : () async {
+                          if (provider.addSubCategoryFormKey.currentState!.validate()) {
+                            provider.addSubCategoryFormKey.currentState!.save();
+                            await provider.submitSubCategory();
+                            if (context.mounted) Navigator.of(context).pop();
+                          }
+                        },
+                        child: provider.isSubmitting
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+                            : const Text('Submit'),
+                      );
                     },
-                    child: Text('Submit'),
                   ),
                 ],
               ),

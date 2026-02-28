@@ -65,9 +65,13 @@ class CouponListSection extends StatelessWidget {
                       edit: () {
                         showAddCouponForm(context, dataProvider.coupons[index]);
                       },
-                      delete: () {
-                        //TODO: should complete call deleteCoupon
-                        context.couponCodeProvider.deleteCoupon(dataProvider.coupons[index]);
+                      delete: () async {
+                        context.dataProvider.setRefreshing(true);
+                        try {
+                          await context.couponCodeProvider.deleteCoupon(dataProvider.coupons[index]);
+                        } finally {
+                          context.dataProvider.setRefreshing(false);
+                        }
                       },
                     ),
                   ),

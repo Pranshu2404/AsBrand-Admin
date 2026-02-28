@@ -70,10 +70,14 @@ class _CategoryListSectionState extends State<CategoryListSection> {
                       rows: List.generate(
                         displayedCategories.length,
                         (index) => categoryDataRow(displayedCategories[index],
-                            delete: () {
-                          //TODO: should complete call  deleteCategory
-                          context.categoryProvider
-                              .deleteCategory(displayedCategories[index]);
+                            delete: () async {
+                          context.dataProvider.setRefreshing(true);
+                          try {
+                            await context.categoryProvider
+                                .deleteCategory(displayedCategories[index]);
+                          } finally {
+                            context.dataProvider.setRefreshing(false);
+                          }
                         }, edit: () {
                           showAddCategoryForm(
                               context, displayedCategories[index]);

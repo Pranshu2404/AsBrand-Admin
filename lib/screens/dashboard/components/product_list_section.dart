@@ -80,9 +80,14 @@ class _ProductListSectionState extends State<ProductListSection> {
                           edit: () {
                             showAddProductForm(context, displayedProducts[index]);
                           },
-                          delete: () {
-                            context.dashBoardProvider
-                                .deleteProduct(displayedProducts[index]);
+                          delete: () async {
+                            context.dataProvider.setRefreshing(true);
+                            try {
+                              await context.dashBoardProvider
+                                  .deleteProduct(displayedProducts[index]);
+                            } finally {
+                              context.dataProvider.setRefreshing(false);
+                            }
                           },
                         ),
                       ),

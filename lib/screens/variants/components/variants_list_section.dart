@@ -78,10 +78,14 @@ class _VariantsListSectionState extends State<VariantsListSection> {
                         (index) => variantDataRow(
                             displayedVariants[index], index + 1, edit: () {
                           showAddVariantForm(context, displayedVariants[index]);
-                        }, delete: () {
-                          //TODO: should complete call deleteVariant
-                          context.variantProvider
-                              .deleteVariant(displayedVariants[index]);
+                        }, delete: () async {
+                          context.dataProvider.setRefreshing(true);
+                          try {
+                            await context.variantProvider
+                                .deleteVariant(displayedVariants[index]);
+                          } finally {
+                            context.dataProvider.setRefreshing(false);
+                          }
                         }),
                       ),
                     ),

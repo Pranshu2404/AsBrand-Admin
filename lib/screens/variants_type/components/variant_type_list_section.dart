@@ -82,10 +82,14 @@ class _VariantsTypeListSectionState extends State<VariantsTypeListSection> {
                             showAddVariantsTypeForm(
                                 context, displayedVariantTypes[index]);
                           },
-                          delete: () {
-                            //TODO: should complete call deleteVariantType
-                            context.variantTypeProvider.deleteVariantType(
-                                displayedVariantTypes[index]);
+                          delete: () async {
+                            context.dataProvider.setRefreshing(true);
+                            try {
+                              await context.variantTypeProvider.deleteVariantType(
+                                  displayedVariantTypes[index]);
+                            } finally {
+                              context.dataProvider.setRefreshing(false);
+                            }
                           },
                         ),
                       ),

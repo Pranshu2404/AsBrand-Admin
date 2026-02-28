@@ -30,9 +30,14 @@ class CouponCodeProvider extends ChangeNotifier {
 
   CouponCodeProvider(this._dataProvider);
 
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
   //TODO: should complete addCoupon
   addCoupon() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (endDateCtrl.text.isEmpty) {
         SnackBarHelper.showErrorSnackBar('Select end date');
         return;
@@ -55,8 +60,8 @@ class CouponCodeProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          log('Coupon added');
-          _dataProvider.getAllCoupons();
+          print('[Coupon] Added successfully');
+          _dataProvider.getAllCoupons(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar(
               'Failed to add Coupon: ${apiResponse.message}');
@@ -69,12 +74,17 @@ class CouponCodeProvider extends ChangeNotifier {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       rethrow;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updateCoupon
   updateCoupon() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (couponForUpdate != null) {
         Map<String, dynamic> coupon = {
           "couponCode": couponCodeCtrl.text,
@@ -96,8 +106,8 @@ class CouponCodeProvider extends ChangeNotifier {
           if (apiResponse.success == true) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            log('Coupon Updated');
-            _dataProvider.getAllCoupons();
+            print('[Coupon] Updated successfully');
+            _dataProvider.getAllCoupons(); // refresh in background
           } else {
             SnackBarHelper.showErrorSnackBar(
                 'Failed to add Coupon: ${apiResponse.message}');
@@ -111,15 +121,18 @@ class CouponCodeProvider extends ChangeNotifier {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       rethrow;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitCoupon
-  submitCoupon() {
+  Future<void> submitCoupon() async {
     if (couponForUpdate == null) {
-      addCoupon();
+      await addCoupon();
     } else {
-      updateCoupon();
+      await updateCoupon();
     }
   }
 
@@ -132,7 +145,8 @@ class CouponCodeProvider extends ChangeNotifier {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Coupon Deleted Successfully');
-          _dataProvider.getAllCoupons();
+          print('[Coupon] Deleted successfully');
+          _dataProvider.getAllCoupons(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(

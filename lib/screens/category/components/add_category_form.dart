@@ -71,21 +71,34 @@ class CategorySubmitForm extends StatelessWidget {
                     child: Text('Cancel'),
                   ),
                   Gap(defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.categoryProvider.addCategoryFormKey.currentState!.validate()) {
-                        context.categoryProvider.addCategoryFormKey.currentState!.save();
-                        //TODO: should complete call submitCategory
-                        context.categoryProvider.submitCategory();
-                        Navigator.of(context).pop();
-                      }
+                  Consumer<CategoryProvider>(
+                    builder: (context, catProvider, child) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                        ),
+                        onPressed: catProvider.isSubmitting
+                            ? null
+                            : () async {
+                                if (catProvider.addCategoryFormKey.currentState!.validate()) {
+                                  catProvider.addCategoryFormKey.currentState!.save();
+                                  await catProvider.submitCategory();
+                                  if (context.mounted) Navigator.of(context).pop();
+                                }
+                              },
+                        child: catProvider.isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text('Submit'),
+                      );
                     },
-                    child: Text('Submit'),
                   ),
                 ],
               ),
