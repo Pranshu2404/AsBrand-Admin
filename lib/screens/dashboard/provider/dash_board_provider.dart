@@ -195,6 +195,9 @@ class DashBoardProvider extends ChangeNotifier {
 
       // No need to send image files — they're already uploaded
       // Just send the form data as a regular FormData (multer will parse it)
+      print('[addProduct] uploadedImageUrls: $uploadedImageUrls');
+      print('[addProduct] imageUrlsList: $imageUrlsList');
+      print('[addProduct] imageUrls field: ${formDataMap['imageUrls']}');
       final FormData form = FormData(formDataMap);
 
       final response =
