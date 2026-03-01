@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../utility/constants.dart';
 import '../../core/routes/app_pages.dart';
 
@@ -15,10 +16,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
       if (_usernameController.text.trim() == 'As1090' &&
           _passwordController.text.trim() == '@san6387deep') {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
         Get.offAllNamed(AppPages.HOME);
       } else {
         Get.snackbar(

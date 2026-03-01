@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/data/data_provider.dart';
 import 'core/routes/app_pages.dart';
 import 'screens/brands/provider/brand_provider.dart';
@@ -19,8 +20,13 @@ import 'screens/variants_type/provider/variant_type_provider.dart';
 import 'utility/constants.dart';
 import 'utility/extensions.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Check if user was previously logged in
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => DataProvider()),
     ChangeNotifierProvider(create: (context) => MainScreenProvider()),
@@ -34,10 +40,14 @@ void main() {
     ChangeNotifierProvider(create: (context) => PosterProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => OrderProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => NotificationProvider(context.dataProvider)),
-  ], child: MyApp()));
+  ], child: MyApp(isLoggedIn: isLoggedIn)));
 }
 
 class MyApp extends StatelessWidget {
+  final bool isLoggedIn;
+  
+  const MyApp({super.key, required this.isLoggedIn});
+  
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -48,7 +58,7 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme).apply(bodyColor: Colors.white),
         canvasColor: secondaryColor,
       ),
-      initialRoute: AppPages.LOGIN,
+      initialRoute: isLoggedIn ? AppPages.HOME : AppPages.LOGIN,
       unknownRoute: GetPage(name: '/notFount', page: () => MainScreen()),
       defaultTransition: Transition.cupertino,
       getPages: AppPages.routes,
