@@ -81,9 +81,15 @@ class _OrderListSectionState extends State<OrderListSection> {
                       rows: List.generate(
                         displayedOrders.length,
                         (index) => orderDataRow(
-                            displayedOrders[index], index + 1, delete: () {
-                          Provider.of<OrderProvider>(context, listen: false)
-                              .deleteOrder(displayedOrders[index]);
+                            displayedOrders[index], index + 1, delete: () async {
+                          final dataProvider = Provider.of<DataProvider>(context, listen: false);
+                          dataProvider.setRefreshing(true);
+                          try {
+                            await Provider.of<OrderProvider>(context, listen: false)
+                                .deleteOrder(displayedOrders[index]);
+                          } finally {
+                            dataProvider.setRefreshing(false);
+                          }
                         }, edit: () {
                           showOrderForm(context, displayedOrders[index]);
                         }),

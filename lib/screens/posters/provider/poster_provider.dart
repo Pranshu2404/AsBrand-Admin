@@ -25,9 +25,14 @@ class PosterProvider extends ChangeNotifier {
 
   PosterProvider(this._dataProvider);
 
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
   //TODO: should complete addPoster
   addPoster() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (selectedImage == null) {
         SnackBarHelper.showErrorSnackBar('Please Choose An Image!');
         return;
@@ -48,8 +53,8 @@ class PosterProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          log('Poster added');
-          _dataProvider.getAllPosters();
+          print('[Poster] Added successfully');
+          _dataProvider.getAllPosters(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar(
               'Failed to add poster: ${apiResponse.message}');
@@ -61,12 +66,17 @@ class PosterProvider extends ChangeNotifier {
     } catch (e) {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updatePoster
   updatePoster() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       Map<String, dynamic> formDataMap = {
         'posterName': posterNameCtrl.text,
         'image': posterForUpdate?.imageUrl ?? '',
@@ -91,8 +101,8 @@ class PosterProvider extends ChangeNotifier {
           SnackBarHelper.showSuccessSnackBar(
             '${apiResponse.message}',
           );
-          log('poster added');
-          _dataProvider.getAllPosters();
+          print('[Poster] Updated successfully');
+          _dataProvider.getAllPosters(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar(
             'Failed to add poster: ${apiResponse.message}',
@@ -106,15 +116,18 @@ class PosterProvider extends ChangeNotifier {
     } catch (e) {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitPoster
-  submitPoster() {
+  Future<void> submitPoster() async {
     if (posterForUpdate == null) {
-      addPoster();
+      await addPoster();
     } else {
-      updatePoster();
+      await updatePoster();
     }
   }
 
@@ -137,7 +150,8 @@ class PosterProvider extends ChangeNotifier {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Poster Deleted Successfully');
-          _dataProvider.getAllPosters();
+          print('[Poster] Deleted successfully');
+          _dataProvider.getAllPosters(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(

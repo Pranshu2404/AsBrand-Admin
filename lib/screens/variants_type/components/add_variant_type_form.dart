@@ -1,7 +1,9 @@
 import '../../../models/variant_type.dart';
+import '../provider/variant_type_provider.dart';
 import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import '../../../utility/constants.dart';
 import '../../../widgets/custom_text_field.dart';
 
@@ -73,21 +75,25 @@ class VariantTypeSubmitForm extends StatelessWidget {
                     child: Text('Cancel'),
                   ),
                   SizedBox(width: defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.variantTypeProvider.addVariantsTypeFormKey.currentState!.validate()) {
-                        context.variantTypeProvider.addVariantsTypeFormKey.currentState!.save();
-                        //TODO: should complete call submitVariantType
-                        context.variantTypeProvider.submitVariantType();
-                        Navigator.of(context).pop();
-                      }
+                  Consumer<VariantsTypeProvider>(
+                    builder: (context, provider, child) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                        ),
+                        onPressed: provider.isSubmitting ? null : () async {
+                          if (provider.addVariantsTypeFormKey.currentState!.validate()) {
+                            provider.addVariantsTypeFormKey.currentState!.save();
+                            await provider.submitVariantType();
+                            if (context.mounted) Navigator.of(context).pop();
+                          }
+                        },
+                        child: provider.isSubmitting
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+                            : const Text('Submit'),
+                      );
                     },
-                    child: Text('Submit'),
                   ),
                 ],
               ),

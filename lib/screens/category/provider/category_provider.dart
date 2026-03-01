@@ -9,7 +9,6 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/category.dart';
-import 'dart:developer';
 
 class CategoryProvider extends ChangeNotifier {
   HttpService service = HttpService();
@@ -17,6 +16,9 @@ class CategoryProvider extends ChangeNotifier {
   final addCategoryFormKey = GlobalKey<FormState>();
   TextEditingController categoryNameCtrl = TextEditingController();
   Category? categoryForUpdate;
+
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
 
   AppFile? selectedImage;
   XFile? imgXFile;
@@ -26,6 +28,8 @@ class CategoryProvider extends ChangeNotifier {
   //TODO: should complete addCategory
   Future<void> addCategory() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       // 1️⃣ Image validation
       if (selectedImage == null) {
         Get.snackbar(
@@ -61,26 +65,31 @@ class CategoryProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          _dataProvider.getAllCategory();
-          log('Category added: ${apiResponse.data}');
+          print('[Category] Added successfully');
+          _dataProvider.getAllCategory(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar('${apiResponse.message}');
-          log('Failed to add category: ${apiResponse.message}');
+          print('[Category] Add failed: ${apiResponse.message}');
         }
       } else {
-        log('Server error: ${response.statusText}');
+        print('[Category] Add API error: ${response.statusCode} ${response.statusText}');
         SnackBarHelper.showErrorSnackBar(
             'Server error: ${response.statusText}');
       }
     } catch (e) {
-      log('Exception: $e');
+      print('[Category] Add exception: $e');
       SnackBarHelper.showErrorSnackBar('Exception: $e');
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updateCategory
   updateCategory() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       Map<String, dynamic> formDataMap = {
         'name': categoryNameCtrl.text,
         'image': categoryForUpdate?.image ?? '',
@@ -99,8 +108,8 @@ class CategoryProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          log('category updated'); // Changed from 'added' to 'updated'
-          _dataProvider.getAllCategory();
+          print('[Category] Updated successfully');
+          _dataProvider.getAllCategory(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar(
               'Failed to update category: ${apiResponse.message}');
@@ -110,18 +119,21 @@ class CategoryProvider extends ChangeNotifier {
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
+      print('[Category] Update exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitCategory
-  submitCategory() {
+  Future<void> submitCategory() async {
     if (categoryForUpdate == null) {
-      addCategory();
+      await addCategory();
     } else {
-      updateCategory();
+      await updateCategory();
     }
   }
 
@@ -144,15 +156,16 @@ class CategoryProvider extends ChangeNotifier {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Category Deleted Successfully');
-          _dataProvider.getAllCategory();
+          print('[Category] Deleted successfully');
+          _dataProvider.getAllCategory(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
-      return;
+      print('[Category] Delete exception: $e');
+      SnackBarHelper.showErrorSnackBar('Failed to delete: $e');
     }
   }
 

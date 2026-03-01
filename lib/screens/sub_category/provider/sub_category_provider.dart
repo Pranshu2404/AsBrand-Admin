@@ -20,9 +20,14 @@ class SubCategoryProvider extends ChangeNotifier {
 
   SubCategoryProvider(this._dataProvider);
 
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
   //TODO: should complete addSubCategory
   addSubCategory() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       Map<String, dynamic> subCategory = {
         'name': subCategoryNameCtrl.text,
         'categoryId': selectedCategory?.sId
@@ -35,8 +40,8 @@ class SubCategoryProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          _dataProvider.getAllSubCategory();
-          log('Sub category added');
+          _dataProvider.getAllSubCategory(); // refresh in background
+          print('[SubCategory] Added successfully');
         } else {
           SnackBarHelper.showErrorSnackBar(
               'Failed to add Sub Category: ${apiResponse.message}');
@@ -49,12 +54,17 @@ class SubCategoryProvider extends ChangeNotifier {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updateSubCategory
   updateSubCategory() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (subCategoryForUpdate != null) {
         Map<String, dynamic> subCategory = {
           'name': subCategoryNameCtrl.text,
@@ -71,8 +81,8 @@ class SubCategoryProvider extends ChangeNotifier {
           if (apiResponse.success == true) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            log('Sub Category Updated');
-            _dataProvider.getAllSubCategory();
+            print('[SubCategory] Updated successfully');
+            _dataProvider.getAllSubCategory(); // refresh in background
           } else {
             SnackBarHelper.showErrorSnackBar(
                 'Failed to update Sub Category: ${apiResponse.message}');
@@ -86,15 +96,18 @@ class SubCategoryProvider extends ChangeNotifier {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       rethrow;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitSubCategory
-  submitSubCategory() {
+  Future<void> submitSubCategory() async {
     if (subCategoryForUpdate == null) {
-      addSubCategory();
+      await addSubCategory();
     } else {
-      updateSubCategory();
+      await updateSubCategory();
     }
   }
 
@@ -108,15 +121,16 @@ class SubCategoryProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar(
               'Sub Category Deleted Successfully');
-          _dataProvider.getAllSubCategory();
+          print('[SubCategory] Deleted successfully');
+          _dataProvider.getAllSubCategory(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
-      return;
+      print('[SubCategory] Delete exception: $e');
+      SnackBarHelper.showErrorSnackBar('Failed to delete: $e');
     }
   }
 

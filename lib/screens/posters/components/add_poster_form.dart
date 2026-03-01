@@ -70,21 +70,25 @@ class PosterSubmitForm extends StatelessWidget {
                     child: Text('Cancel'),
                   ),
                   Gap(defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.posterProvider.addPosterFormKey.currentState!.validate()) {
-                        context.posterProvider.addPosterFormKey.currentState!.save();
-                        //TODO: should complete call submitPoster
-                        context.posterProvider.submitPoster();
-                        Navigator.of(context).pop();
-                      }
+                  Consumer<PosterProvider>(
+                    builder: (context, provider, child) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                        ),
+                        onPressed: provider.isSubmitting ? null : () async {
+                          if (provider.addPosterFormKey.currentState!.validate()) {
+                            provider.addPosterFormKey.currentState!.save();
+                            await provider.submitPoster();
+                            if (context.mounted) Navigator.of(context).pop();
+                          }
+                        },
+                        child: provider.isSubmitting
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+                            : const Text('Submit'),
+                      );
                     },
-                    child: Text('Submit'),
                   ),
                 ],
               ),

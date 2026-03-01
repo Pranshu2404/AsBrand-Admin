@@ -74,10 +74,14 @@ class _BrandListSectionState extends State<BrandListSection> {
                         (index) => brandDataRow(
                             displayedBrands[index], index + 1, edit: () {
                           showBrandForm(context, displayedBrands[index]);
-                        }, delete: () {
-                          //TODO: should complete deleteBrand
-                          context.brandProvider
-                              .deleteBrand(displayedBrands[index]);
+                        }, delete: () async {
+                          context.dataProvider.setRefreshing(true);
+                          try {
+                            await context.brandProvider
+                                .deleteBrand(displayedBrands[index]);
+                          } finally {
+                            context.dataProvider.setRefreshing(false);
+                          }
                         }),
                       ),
                     ),

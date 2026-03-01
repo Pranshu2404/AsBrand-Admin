@@ -19,9 +19,14 @@ class VariantsTypeProvider extends ChangeNotifier {
 
   VariantsTypeProvider(this._dataProvider);
 
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
   //TODO: should complete addVariantType
   addVariantType() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       Map<String, dynamic> variantType = {
         'name': variantNameCtrl.text,
         'type': variantTypeCtrl.text
@@ -34,8 +39,8 @@ class VariantsTypeProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          log('Variant Type added');
-          _dataProvider.getAllVariantType();
+          print('[VariantType] Added successfully');
+          _dataProvider.getAllVariantType(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar(
               'Failed to add Variant Type: ${apiResponse.message}');
@@ -47,12 +52,17 @@ class VariantsTypeProvider extends ChangeNotifier {
     } catch (e) {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updateVariantType
   updateVariantType() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (variantTypeForUpdate != null) {
         Map<String, dynamic> variantType = {
           'name': variantNameCtrl.text,
@@ -69,8 +79,8 @@ class VariantsTypeProvider extends ChangeNotifier {
           if (apiResponse.success == true) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            log('Variant Type Updated'); // Changed from 'Added'
-            _dataProvider.getAllVariantType(); // Fixed the leading period
+            print('[VariantType] Updated successfully');
+            _dataProvider.getAllVariantType(); // refresh in background
           } else {
             SnackBarHelper.showErrorSnackBar(
                 'Failed to update Variant Type: ${apiResponse.message}');
@@ -84,15 +94,18 @@ class VariantsTypeProvider extends ChangeNotifier {
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitVariantType
-  submitVariantType() {
+  Future<void> submitVariantType() async {
     if (variantTypeForUpdate == null) {
-      addVariantType();
+      await addVariantType();
     } else {
-      updateVariantType();
+      await updateVariantType();
     }
   }
 
@@ -104,9 +117,9 @@ class VariantsTypeProvider extends ChangeNotifier {
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar(
-              'Variant Type Deleted Successfully');
-          _dataProvider.getAllVariantType();
+          SnackBarHelper.showSuccessSnackBar('Variant Type Deleted Successfully');
+          print('[VariantType] Deleted successfully');
+          _dataProvider.getAllVariantType(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(

@@ -21,9 +21,14 @@ class BrandProvider extends ChangeNotifier {
 
   BrandProvider(this._dataProvider);
 
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
   //TODO: should complete addBrand
   addBrand() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       Map<String, dynamic> brand = {
         'name': brandNameCtrl.text,
         'subcategoryId': selectedSubCategory?.sId
@@ -36,8 +41,8 @@ class BrandProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          log('Brand added');
-          _dataProvider.getAllBrands();
+          print('[Brand] Added successfully');
+          _dataProvider.getAllBrands(); // refresh in background
         } else {
           SnackBarHelper.showErrorSnackBar(
               'Failed to add Brand: ${apiResponse.message}');
@@ -47,15 +52,20 @@ class BrandProvider extends ChangeNotifier {
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
+      print('[Brand] Add exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete updateBrand
   updateBrand() async {
     try {
+      _isSubmitting = true;
+      notifyListeners();
       if (brandForUpdate != null) {
         Map<String, dynamic> brand = {
           'name': brandNameCtrl.text,
@@ -72,8 +82,8 @@ class BrandProvider extends ChangeNotifier {
           if (apiResponse.success == true) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            log('Brand Updated');
-            _dataProvider.getAllBrands();
+            print('[Brand] Updated successfully');
+            _dataProvider.getAllBrands(); // refresh in background
           } else {
             SnackBarHelper.showErrorSnackBar(
                 'Failed to update Brand: ${apiResponse.message}');
@@ -84,18 +94,21 @@ class BrandProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      print(e);
+      print('[Brand] Update exception: $e');
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return;
+    } finally {
+      _isSubmitting = false;
+      notifyListeners();
     }
   }
 
   //TODO: should complete submitBrand
-  submitBrand() {
+  Future<void> submitBrand() async {
     if (brandForUpdate == null) {
-      addBrand();
+      await addBrand();
     } else {
-      updateBrand();
+      await updateBrand();
     }
   }
 
@@ -107,15 +120,16 @@ class BrandProvider extends ChangeNotifier {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Brand Deleted Successfully');
-          _dataProvider.getAllBrands();
+          print('[Brand] Deleted successfully');
+          _dataProvider.getAllBrands(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print(e);
-      return;
+      print('[Brand] Delete exception: $e');
+      SnackBarHelper.showErrorSnackBar('Failed to delete: $e');
     }
   }
 

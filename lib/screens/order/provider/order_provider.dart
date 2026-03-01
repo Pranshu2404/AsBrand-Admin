@@ -36,7 +36,8 @@ class OrderProvider extends ChangeNotifier {
 
       if (response.isOk) {
         SnackBarHelper.showSuccessSnackBar('Order updated successfully');
-        _dataProvider.getAllOrders(showSnack: true);
+        print('[Order] Updated successfully');
+        _dataProvider.getAllOrders(showSnack: true); // refresh in background
       } else {
         final body = response.body;
         final message = body is Map ? body['message'] : 'Failed to update order';
@@ -57,7 +58,8 @@ class OrderProvider extends ChangeNotifier {
 
       if (response.isOk) {
         SnackBarHelper.showSuccessSnackBar('Order deleted successfully');
-        _dataProvider.getAllOrders(showSnack: false);
+        print('[Order] Deleted successfully');
+        _dataProvider.getAllOrders(showSnack: false); // refresh in background
       } else {
         SnackBarHelper.showErrorSnackBar('Failed to delete order');
       }
@@ -81,7 +83,8 @@ class OrderProvider extends ChangeNotifier {
         final body = response.body;
         final message = body is Map ? body['message'] : 'Shipment created';
         SnackBarHelper.showSuccessSnackBar(message.toString());
-        _dataProvider.getAllOrders(showSnack: false);
+        print('[Order] Shipment generated successfully');
+        _dataProvider.getAllOrders(showSnack: false); // refresh in background
       } else {
         final body = response.body;
         final message = body is Map ? body['message'] : 'Failed to generate shipment';

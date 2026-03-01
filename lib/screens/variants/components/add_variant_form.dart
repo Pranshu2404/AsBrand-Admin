@@ -89,21 +89,25 @@ class VariantSubmitForm extends StatelessWidget {
                     child: Text('Cancel'),
                   ),
                   SizedBox(width: defaultPadding),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: primaryColor,
-                    ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.variantProvider.addVariantsFormKey.currentState!.validate()) {
-                        context.variantProvider.addVariantsFormKey.currentState!.save();
-                        //TODO: should complete call submitVariant
-                        context.variantProvider.submitVariant();
-                        Navigator.of(context).pop();
-                      }
+                  Consumer<VariantsProvider>(
+                    builder: (context, provider, child) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                        ),
+                        onPressed: provider.isSubmitting ? null : () async {
+                          if (provider.addVariantsFormKey.currentState!.validate()) {
+                            provider.addVariantsFormKey.currentState!.save();
+                            await provider.submitVariant();
+                            if (context.mounted) Navigator.of(context).pop();
+                          }
+                        },
+                        child: provider.isSubmitting
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+                            : const Text('Submit'),
+                      );
                     },
-                    child: Text('Submit'),
                   ),
                 ],
               ),

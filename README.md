@@ -1,2 +1,2 @@
-# AsBrand-Admin Panel updated
+# AsBrand-Admin Panel
 
