@@ -142,14 +142,11 @@ class DashBoardProvider extends ChangeNotifier {
         'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
         'proVariants': jsonEncode(variantRows
             .where((row) => row['variantType'] != null)
-
             .map((row) => <String, dynamic>{
-
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
-            }))
-            .toList()),
+            }).toList()), // <--- Correct: .toList() runs before jsonEncode closes
         // New enhanced fields
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': jsonEncode({
