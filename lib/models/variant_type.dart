@@ -15,7 +15,12 @@ class VariantType {
 
   VariantType.fromJson(Map<String, dynamic> json) {
     name = json['name'];
-    type = json['type'];
+    // Handle 'type' being either a plain String or a populated object
+    if (json['type'] is String) {
+      type = json['type'];
+    } else if (json['type'] is Map) {
+      type = json['type']['name'] ?? json['type']['_id']?.toString();
+    }
     sId = json['_id'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];

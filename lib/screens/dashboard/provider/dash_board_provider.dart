@@ -93,11 +93,17 @@ class DashBoardProvider extends ChangeNotifier {
   List<SubCategory> subCategoriesByCategory = [];
   List<Brand> brandsBySubCategory = [];
 
+  // Image upload state tracking
+  Map<int, bool> imageUploadingState = {};
+  Map<int, String> uploadedImageUrls = {};
+
   DashBoardProvider(this._dataProvider) {
     productNameCtrl.addListener(updateUI);
     productPriceCtrl.addListener(updateUI);
     productQntCtrl.addListener(updateUI);
   }
+
+  bool get isAnyImageUploading => imageUploadingState.values.any((v) => v);
 
   bool get checkProductValidity {
     bool isBasicValid = productNameCtrl.text.isNotEmpty &&
@@ -109,27 +115,36 @@ class DashBoardProvider extends ChangeNotifier {
 
     bool isClothingValid = selectedGender != null;
 
-    // If updating, image is already there (or optional). If adding, need main image.
-    bool isImageValid = selectedMainImage != null || productForUpdate != null;
+    // Need at least main image (uploaded URL, local file, or existing product image)
+    bool isImageValid = uploadedImageUrls.containsKey(1) ||
+        selectedMainImage != null ||
+        productForUpdate != null;
 
-    return isBasicValid && isClothingValid && isImageValid;
+    // Don't allow submit while images are still uploading
+    bool isNotUploading = !isAnyImageUploading;
+
+    return isBasicValid && isClothingValid && isImageValid && isNotUploading;
   }
 
   //TODO: should complete addProduct
   addProduct() async {
     try {
-      _isSubmitting = true;
-      notifyListeners();
-      print('[Product] Starting addProduct...');
-      if (selectedMainImage == null) {
+      if (uploadedImageUrls.isEmpty && selectedMainImage == null) {
         SnackBarHelper.showErrorSnackBar('Please Choose An Image!');
-        return; // Stop the program execution
+        return;
+      }
+
+      // Build the image URLs list from pre-uploaded images
+      List<String> imageUrlsList = [];
+      for (int i = 1; i <= 5; i++) {
+        if (uploadedImageUrls.containsKey(i)) {
+          imageUrlsList.add(uploadedImageUrls[i]!);
+        }
       }
 
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
-        'sku': productSkuCtrl.text.isEmpty ? null : productSkuCtrl.text,
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
         'proBrandId': selectedBrand?.sId ?? '',
@@ -146,8 +161,10 @@ class DashBoardProvider extends ChangeNotifier {
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
+
             }).toList()), // <--- Correct: .toList() runs before jsonEncode closes
         // New enhanced fields
+
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': jsonEncode({
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
@@ -166,7 +183,6 @@ class DashBoardProvider extends ChangeNotifier {
         'isActive': isProductActive,
         'metaTitle': productMetaTitleCtrl.text,
         'metaDescription': productMetaDescCtrl.text,
-        // Clothing-specific fields
         'gender': selectedGender,
         'material': productMaterialCtrl.text,
         'fit': selectedFit,
@@ -177,16 +193,10 @@ class DashBoardProvider extends ChangeNotifier {
         'careInstructions': productCareCtrl.text,
       };
 
-      print('[Product] Building form data with images...');
-      final FormData form = await createFormDataForMultipleImage(imgXFiles: [
-        {'image1': mainImgXFile},
-        {'image2': secondImgXFile},
-        {'image3': thirdImgXFile},
-        {'image4': fourthImgXFile},
-        {'image5': fifthImgXFile}
-      ], formData: formDataMap);
+      // No need to send image files — they're already uploaded
+      // Just send the form data as a regular FormData (multer will parse it)
+      final FormData form = FormData(formDataMap);
 
-      print('[Product] Sending API request...');
       final response =
           await service.addItem(endpointUrl: 'products', itemData: form);
       print('[Product] API response: status=${response.statusCode} isOk=${response.isOk}');
@@ -195,8 +205,8 @@ class DashBoardProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          print('[Product] Added successfully');
-          _dataProvider.getAllProduct(); // refresh in background
+          _dataProvider.getAllProduct();
+          log('Product added');
         } else {
           print('[Product] Add failed: ${apiResponse.message}');
           SnackBarHelper.showErrorSnackBar(
@@ -220,13 +230,26 @@ class DashBoardProvider extends ChangeNotifier {
   //TODO: should complete updateProduct
   updateProduct() async {
     try {
-      _isSubmitting = true;
-      notifyListeners();
-      print('[Product] Starting updateProduct...');
+      // Build the image URLs list — include existing product image URLs + newly uploaded ones
+      List<String> imageUrlsList = [];
+      for (int i = 1; i <= 5; i++) {
+        if (uploadedImageUrls.containsKey(i)) {
+          // Use newly uploaded URL
+          imageUrlsList.add(uploadedImageUrls[i]!);
+        } else if (productForUpdate != null) {
+          // Keep existing product image if available
+          final existing = (productForUpdate!.images ?? [])
+              .where((img) => img.image == i)
+              .toList();
+          if (existing.isNotEmpty && existing.first.url != null) {
+            imageUrlsList.add(existing.first.url!);
+          }
+        }
+      }
+
       Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text,
         'description': productDescCtrl.text,
-        'sku': productSkuCtrl.text.isEmpty ? null : productSkuCtrl.text,
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
         'proBrandId': selectedBrand?.sId ?? '',
@@ -243,8 +266,9 @@ class DashBoardProvider extends ChangeNotifier {
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
-            }))
+            })
             .toList()),
+        'imageUrls': jsonEncode(imageUrlsList),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': jsonEncode({
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
@@ -263,7 +287,6 @@ class DashBoardProvider extends ChangeNotifier {
         'isActive': isProductActive,
         'metaTitle': productMetaTitleCtrl.text,
         'metaDescription': productMetaDescCtrl.text,
-        // Clothing-specific fields
         'gender': selectedGender,
         'material': productMaterialCtrl.text,
         'fit': selectedFit,
@@ -274,14 +297,7 @@ class DashBoardProvider extends ChangeNotifier {
         'careInstructions': productCareCtrl.text,
       };
 
-      print('[Product] Building form data with images...');
-      final FormData form = await createFormDataForMultipleImage(imgXFiles: [
-        {'image1': mainImgXFile},
-        {'image2': secondImgXFile},
-        {'image3': thirdImgXFile},
-        {'image4': fourthImgXFile},
-        {'image5': fifthImgXFile}
-      ], formData: formDataMap);
+      final FormData form = FormData(formDataMap);
 
       if (productForUpdate != null) {
         print('[Product] Sending update API request...');
@@ -355,6 +371,7 @@ class DashBoardProvider extends ChangeNotifier {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      // Set local file for immediate preview while we upload
       if (imageCardNumber == 1) {
         selectedMainImage = AppFile(image.path);
         mainImgXFile = image;
@@ -371,8 +388,68 @@ class DashBoardProvider extends ChangeNotifier {
         selectedFifthImage = AppFile(image.path);
         fifthImgXFile = image;
       }
+
+      // Start uploading immediately
+      imageUploadingState[imageCardNumber] = true;
       notifyListeners();
+
+      try {
+        // Build form data for single image upload
+        FormData formData;
+        if (kIsWeb) {
+          String fileName = image.name;
+          Uint8List byteImg = await image.readAsBytes();
+          formData = FormData({'image': MultipartFile(byteImg, filename: fileName)});
+        } else {
+          String filePath = image.path;
+          String fileName = filePath.split('/').last;
+          formData = FormData({'image': await MultipartFile(filePath, filename: fileName)});
+        }
+
+        final url = await service.uploadImage(imageData: formData);
+        if (url != null) {
+          uploadedImageUrls[imageCardNumber] = url;
+          log('Image $imageCardNumber uploaded: $url');
+        } else {
+          SnackBarHelper.showErrorSnackBar('Failed to upload image $imageCardNumber. Please try again.');
+          // Clear the failed image
+          _clearSingleImage(imageCardNumber);
+        }
+      } catch (e) {
+        print('Image upload error: $e');
+        SnackBarHelper.showErrorSnackBar('Error uploading image: $e');
+        _clearSingleImage(imageCardNumber);
+      } finally {
+        imageUploadingState[imageCardNumber] = false;
+        notifyListeners();
+      }
     }
+  }
+
+  void _clearSingleImage(int cardNumber) {
+    switch (cardNumber) {
+      case 1:
+        selectedMainImage = null;
+        mainImgXFile = null;
+        break;
+      case 2:
+        selectedSecondImage = null;
+        secondImgXFile = null;
+        break;
+      case 3:
+        selectedThirdImage = null;
+        thirdImgXFile = null;
+        break;
+      case 4:
+        selectedFourthImage = null;
+        fourthImgXFile = null;
+        break;
+      case 5:
+        selectedFifthImage = null;
+        fifthImgXFile = null;
+        break;
+    }
+    uploadedImageUrls.remove(cardNumber);
   }
 
   Future<FormData> createFormDataForMultipleImage({
@@ -619,6 +696,10 @@ class DashBoardProvider extends ChangeNotifier {
 
     subCategoriesByCategory = [];
     brandsBySubCategory = [];
+
+    // Clear upload state
+    imageUploadingState = {};
+    uploadedImageUrls = {};
   }
 
   updateUI() {
