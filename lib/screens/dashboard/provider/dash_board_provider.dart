@@ -142,25 +142,27 @@ class DashBoardProvider extends ChangeNotifier {
         'proVariantId': variantRows.expand<String>((row) => (row['selectedVariants'] as List<String>?) ?? []).toList(),
         'proVariants': jsonEncode(variantRows
             .where((row) => row['variantType'] != null)
+
             .map((row) => <String, dynamic>{
+
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
-            })
+            }))
             .toList()),
         // New enhanced fields
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
-        'dimensions': {
+        'dimensions': jsonEncode({
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
           'width': double.tryParse(productWidthCtrl.text) ?? 0,
           'height': double.tryParse(productHeightCtrl.text) ?? 0,
-        },
+        }),
         'stockStatus': stockStatus,
         'lowStockThreshold': int.tryParse(productLowStockCtrl.text) ?? 10,
-        'tags': productTagsCtrl.text.isEmpty 
+        'tags': jsonEncode(productTagsCtrl.text.isEmpty 
             ? [] 
-            : productTagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList(),
-        'specifications': productSpecs,
+            : productTagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList()),
+        'specifications': jsonEncode(productSpecs),
         'warranty': productWarrantyCtrl.text,
         'featured': isFeatured,
         'emiEligible': isEmiEligible,
@@ -244,20 +246,20 @@ class DashBoardProvider extends ChangeNotifier {
               'variantTypeId': (row['variantType'] as VariantType).sId,
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
-            })
+            }))
             .toList()),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
-        'dimensions': {
+        'dimensions': jsonEncode({
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
           'width': double.tryParse(productWidthCtrl.text) ?? 0,
           'height': double.tryParse(productHeightCtrl.text) ?? 0,
-        },
+        }),
         'stockStatus': stockStatus,
         'lowStockThreshold': int.tryParse(productLowStockCtrl.text) ?? 10,
-        'tags': productTagsCtrl.text.isEmpty 
+        'tags': jsonEncode(productTagsCtrl.text.isEmpty 
             ? [] 
-            : productTagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList(),
-        'specifications': productSpecs,
+            : productTagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList()),
+        'specifications': jsonEncode(productSpecs),
         'warranty': productWarrantyCtrl.text,
         'featured': isFeatured,
         'emiEligible': isEmiEligible,
