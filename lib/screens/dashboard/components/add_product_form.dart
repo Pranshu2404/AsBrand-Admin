@@ -44,14 +44,15 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
+    final bool isSmallScreen = size.width < 600;
     
     return SingleChildScrollView(
       child: Form(
         key: context.dashBoardProvider.addProductFormKey,
         child: Container(
-          width: size.width * 0.8,
+          width: isSmallScreen ? size.width * 0.95 : size.width * 0.8,
           height: size.height * 0.85,
-          padding: const EdgeInsets.all(defaultPadding),
+          padding: EdgeInsets.all(isSmallScreen ? 8 : defaultPadding),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(12.0),
@@ -71,14 +72,23 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                   labelColor: primaryColor,
                   unselectedLabelColor: Colors.white54,
                   isScrollable: true,
-                  tabs: const [
-                    Tab(text: 'Basic Info', icon: Icon(Icons.info_outline, size: 18)),
-                    Tab(text: 'Pricing', icon: Icon(Icons.attach_money, size: 18)),
-                    Tab(text: 'Inventory', icon: Icon(Icons.inventory_2_outlined, size: 18)),
-                    Tab(text: 'Clothing', icon: Icon(Icons.checkroom, size: 18)),
-                    Tab(text: 'Media', icon: Icon(Icons.image_outlined, size: 18)),
-                    Tab(text: 'SEO', icon: Icon(Icons.search, size: 18)),
-                  ],
+                  tabs: isSmallScreen
+                    ? const [
+                        Tab(icon: Icon(Icons.info_outline, size: 20)),
+                        Tab(icon: Icon(Icons.attach_money, size: 20)),
+                        Tab(icon: Icon(Icons.inventory_2_outlined, size: 20)),
+                        Tab(icon: Icon(Icons.checkroom, size: 20)),
+                        Tab(icon: Icon(Icons.image_outlined, size: 20)),
+                        Tab(icon: Icon(Icons.search, size: 20)),
+                      ]
+                    : const [
+                        Tab(text: 'Basic Info', icon: Icon(Icons.info_outline, size: 18)),
+                        Tab(text: 'Pricing', icon: Icon(Icons.attach_money, size: 18)),
+                        Tab(text: 'Inventory', icon: Icon(Icons.inventory_2_outlined, size: 18)),
+                        Tab(text: 'Clothing', icon: Icon(Icons.checkroom, size: 18)),
+                        Tab(text: 'Media', icon: Icon(Icons.image_outlined, size: 18)),
+                        Tab(text: 'SEO', icon: Icon(Icons.search, size: 18)),
+                      ],
                 ),
               ),
               const Gap(defaultPadding),
@@ -107,7 +117,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: secondaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16 : 30, vertical: 15),
                     ),
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -121,7 +131,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16 : 30, vertical: 15),
                         ),
                         onPressed: (provider.checkProductValidity && !provider.isSubmitting)
                             ? () async {
@@ -158,6 +168,23 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
     );
   }
 
+  /// Helper: wraps two widgets in a Row on wide screens, Column on narrow screens
+  Widget _responsiveFields(BuildContext context, List<Widget> children) {
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 600;
+    if (isSmallScreen) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children.map((child) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: child,
+        )).toList(),
+      );
+    }
+    return Row(
+      children: children.map((child) => Expanded(child: child)).toList(),
+    );
+  }
+
   // Tab 1: Basic Info
   Widget _buildBasicInfoTab(BuildContext context) {
     return SingleChildScrollView(
@@ -184,94 +211,86 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
           const Gap(defaultPadding),
           
           _sectionHeader('Categorization'),
-          Row(
-            children: [
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return CustomDropdown(
-                    key: ValueKey(dashProvider.selectedCategory?.sId),
-                    initialValue: dashProvider.selectedCategory,
-                    hintText: dashProvider.selectedCategory?.name ?? 'Select category *',
-                    items: context.dataProvider.categories,
-                    displayItem: (Category? category) => category?.name ?? '',
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        context.dashBoardProvider.filterSubcategory(newValue);
-                      }
-                    },
-                    validator: (value) {
-                      if (value == null) return 'Please select a category';
-                      return null;
-                    },
-                  );
-                },
-              )),
-              const Gap(defaultPadding),
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return CustomDropdown(
-                    key: ValueKey(dashProvider.selectedSubCategory?.sId),
-                    hintText: dashProvider.selectedSubCategory?.name ?? 'Sub category *',
-                    items: dashProvider.subCategoriesByCategory,
-                    initialValue: dashProvider.selectedSubCategory,
-                    displayItem: (SubCategory? subCategory) => subCategory?.name ?? '',
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        context.dashBoardProvider.filterBrand(newValue);
-                      }
-                    },
-                    validator: (value) {
-                      if (value == null) return 'Please select sub category';
-                      return null;
-                    },
-                  );
-                },
-              )),
-            ],
-          ),
-          const Gap(defaultPadding),
-          Row(
-            children: [
-              Expanded(
-                child: Consumer<DashBoardProvider>(
-                  builder: (context, dashProvider, child) {
-                    return CustomDropdown(
-                      key: ValueKey(dashProvider.selectedBrand?.sId),
-                      initialValue: dashProvider.selectedBrand,
-                      items: dashProvider.brandsBySubCategory,
-                      hintText: dashProvider.selectedBrand?.name ?? 'Select Brand *',
-                      displayItem: (Brand? brand) => brand?.name ?? '',
-                      onChanged: (newValue) {
-                        if (newValue != null) {
-                          dashProvider.selectedBrand = newValue;
-                          dashProvider.updateUI();
-                        }
-                      },
-                      validator: (value) {
-                        if (value == null) return 'Please select brand';
-                        return null;
-                      },
-                    );
+          _responsiveFields(context, [
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return CustomDropdown(
+                  key: ValueKey(dashProvider.selectedCategory?.sId),
+                  initialValue: dashProvider.selectedCategory,
+                  hintText: dashProvider.selectedCategory?.name ?? 'Select category *',
+                  items: context.dataProvider.categories,
+                  displayItem: (Category? category) => category?.name ?? '',
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      context.dashBoardProvider.filterSubcategory(newValue);
+                    }
                   },
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return SwitchListTile(
-                    title: const Text('Featured Product'),
-                    subtitle: const Text('Show on homepage'),
-                    value: dashProvider.isFeatured,
-                    activeColor: primaryColor,
-                    onChanged: (val) {
-                      dashProvider.isFeatured = val;
+                  validator: (value) {
+                    if (value == null) return 'Please select a category';
+                    return null;
+                  },
+                );
+              },
+            ),
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return CustomDropdown(
+                  key: ValueKey(dashProvider.selectedSubCategory?.sId),
+                  hintText: dashProvider.selectedSubCategory?.name ?? 'Sub category *',
+                  items: dashProvider.subCategoriesByCategory,
+                  initialValue: dashProvider.selectedSubCategory,
+                  displayItem: (SubCategory? subCategory) => subCategory?.name ?? '',
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      context.dashBoardProvider.filterBrand(newValue);
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null) return 'Please select sub category';
+                    return null;
+                  },
+                );
+              },
+            ),
+          ]),
+          const Gap(defaultPadding),
+          _responsiveFields(context, [
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return CustomDropdown(
+                  key: ValueKey(dashProvider.selectedBrand?.sId),
+                  initialValue: dashProvider.selectedBrand,
+                  items: dashProvider.brandsBySubCategory,
+                  hintText: dashProvider.selectedBrand?.name ?? 'Select Brand *',
+                  displayItem: (Brand? brand) => brand?.name ?? '',
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      dashProvider.selectedBrand = newValue;
                       dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-            ],
-          ),
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null) return 'Please select brand';
+                    return null;
+                  },
+                );
+              },
+            ),
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return SwitchListTile(
+                  title: const Text('Featured Product'),
+                  subtitle: const Text('Show on homepage'),
+                  value: dashProvider.isFeatured,
+                  activeColor: primaryColor,
+                  onChanged: (val) {
+                    dashProvider.isFeatured = val;
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+          ]),
         ],
       ),
     );
@@ -284,31 +303,24 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('Pricing Information'),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productPriceCtrl,
-                  labelText: 'Regular Price (₹) *',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter price';
-                    return null;
-                  },
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productOffPriceCtrl,
-                  labelText: 'Offer Price (₹)',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                ),
-              ),
-            ],
-          ),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productPriceCtrl,
+              labelText: 'Regular Price (₹) *',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Please enter price';
+                return null;
+              },
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productOffPriceCtrl,
+              labelText: 'Offer Price (₹)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+          ]),
           const Gap(defaultPadding),
           
           _sectionHeader('Payment Options'),
@@ -429,113 +441,85 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('Stock Management'),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productSkuCtrl,
-                  labelText: 'SKU (Stock Keeping Unit)',
-                  onSave: (val) {},
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productQntCtrl,
-                  labelText: 'Quantity *',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter quantity';
-                    return null;
-                  },
-                ),
-              ),
-            ],
-          ),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productSkuCtrl,
+              labelText: 'SKU (Stock Keeping Unit)',
+              onSave: (val) {},
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productQntCtrl,
+              labelText: 'Quantity *',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Please enter quantity';
+                return null;
+              },
+            ),
+          ]),
           const Gap(defaultPadding),
-          Row(
-            children: [
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.stockStatus,
-                    decoration: const InputDecoration(
-                      labelText: 'Stock Status',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'in_stock', child: Text('In Stock')),
-                      DropdownMenuItem(value: 'out_of_stock', child: Text('Out of Stock')),
-                      DropdownMenuItem(value: 'low_stock', child: Text('Low Stock')),
-                      DropdownMenuItem(value: 'pre_order', child: Text('Pre-Order')),
-                    ],
-                    onChanged: (val) {
-                      dashProvider.stockStatus = val ?? 'in_stock';
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-              const Gap(defaultPadding),
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productLowStockCtrl,
-                  labelText: 'Low Stock Alert Threshold',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                ),
-              ),
-            ],
-          ),
+          _responsiveFields(context, [
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.stockStatus,
+                  decoration: const InputDecoration(
+                    labelText: 'Stock Status',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'in_stock', child: Text('In Stock')),
+                    DropdownMenuItem(value: 'out_of_stock', child: Text('Out of Stock')),
+                    DropdownMenuItem(value: 'low_stock', child: Text('Low Stock')),
+                    DropdownMenuItem(value: 'pre_order', child: Text('Pre-Order')),
+                  ],
+                  onChanged: (val) {
+                    dashProvider.stockStatus = val ?? 'in_stock';
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productLowStockCtrl,
+              labelText: 'Low Stock Alert Threshold',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+          ]),
           
           const Gap(defaultPadding * 2),
           _sectionHeader('Shipping Information'),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productWeightCtrl,
-                  labelText: 'Weight (grams)',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(child: Container()),
-            ],
-          ),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productWeightCtrl,
+              labelText: 'Weight (grams)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+          ]),
           const Gap(defaultPadding),
-          Row(
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productLengthCtrl,
-                  labelText: 'Length (cm)',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productWidthCtrl,
-                  labelText: 'Width (cm)',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                ),
-              ),
-              const Gap(defaultPadding),
-              Expanded(
-                child: CustomTextField(
-                  controller: context.dashBoardProvider.productHeightCtrl,
-                  labelText: 'Height (cm)',
-                  inputType: TextInputType.number,
-                  onSave: (val) {},
-                ),
-              ),
-            ],
-          ),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productLengthCtrl,
+              labelText: 'Length (cm)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productWidthCtrl,
+              labelText: 'Width (cm)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productHeightCtrl,
+              labelText: 'Height (cm)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+          ]),
           
           const Gap(defaultPadding * 2),
           _sectionHeader('Product Status'),
@@ -565,135 +549,126 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('Clothing Attributes'),
-          Row(
-            children: [
-              // Gender dropdown
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.selectedGender,
-                    decoration: const InputDecoration(
-                      labelText: 'Gender *',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: DashBoardProvider.genderOptions.map((g) => 
-                      DropdownMenuItem(value: g, child: Text(g))).toList(),
-                    onChanged: (val) {
-                      dashProvider.selectedGender = val;
-                      dashProvider.updateUI();
-                    },
-                    validator: (value) {
-                      if (value == null) return 'Please select gender';
-                      return null;
-                    },
-                  );
-                },
-              )),
-              const Gap(defaultPadding),
-              // Fit dropdown
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.selectedFit,
-                    decoration: const InputDecoration(
-                      labelText: 'Fit',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: DashBoardProvider.fitOptions.map((f) => 
-                      DropdownMenuItem(value: f, child: Text(f))).toList(),
-                    onChanged: (val) {
-                      dashProvider.selectedFit = val;
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-            ],
-          ),
+          _responsiveFields(context, [
+            // Gender dropdown
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.selectedGender,
+                  decoration: const InputDecoration(
+                    labelText: 'Gender *',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: DashBoardProvider.genderOptions.map((g) => 
+                    DropdownMenuItem(value: g, child: Text(g))).toList(),
+                  onChanged: (val) {
+                    dashProvider.selectedGender = val;
+                    dashProvider.updateUI();
+                  },
+                  validator: (value) {
+                    if (value == null) return 'Please select gender';
+                    return null;
+                  },
+                );
+              },
+            ),
+            // Fit dropdown
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.selectedFit,
+                  decoration: const InputDecoration(
+                    labelText: 'Fit',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: DashBoardProvider.fitOptions.map((f) => 
+                    DropdownMenuItem(value: f, child: Text(f))).toList(),
+                  onChanged: (val) {
+                    dashProvider.selectedFit = val;
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+          ]),
           const Gap(defaultPadding),
-          Row(
-            children: [
-              // Pattern dropdown
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.selectedPattern,
-                    decoration: const InputDecoration(
-                      labelText: 'Pattern',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: DashBoardProvider.patternOptions.map((p) => 
-                      DropdownMenuItem(value: p, child: Text(p))).toList(),
-                    onChanged: (val) {
-                      dashProvider.selectedPattern = val;
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-              const Gap(defaultPadding),
-              // Sleeve Length dropdown
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.selectedSleeveLength,
-                    decoration: const InputDecoration(
-                      labelText: 'Sleeve Length',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: DashBoardProvider.sleeveLengthOptions.map((s) => 
-                      DropdownMenuItem(value: s, child: Text(s))).toList(),
-                    onChanged: (val) {
-                      dashProvider.selectedSleeveLength = val;
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-            ],
-          ),
+          _responsiveFields(context, [
+            // Pattern dropdown
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.selectedPattern,
+                  decoration: const InputDecoration(
+                    labelText: 'Pattern',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: DashBoardProvider.patternOptions.map((p) => 
+                    DropdownMenuItem(value: p, child: Text(p))).toList(),
+                  onChanged: (val) {
+                    dashProvider.selectedPattern = val;
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+            // Sleeve Length dropdown
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.selectedSleeveLength,
+                  decoration: const InputDecoration(
+                    labelText: 'Sleeve Length',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: DashBoardProvider.sleeveLengthOptions.map((s) => 
+                    DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (val) {
+                    dashProvider.selectedSleeveLength = val;
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+          ]),
           const Gap(defaultPadding),
-          Row(
-            children: [
-              // Neckline dropdown  
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.selectedNeckline,
-                    decoration: const InputDecoration(
-                      labelText: 'Neckline',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: DashBoardProvider.necklineOptions.map((n) => 
-                      DropdownMenuItem(value: n, child: Text(n))).toList(),
-                    onChanged: (val) {
-                      dashProvider.selectedNeckline = val;
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-              const Gap(defaultPadding),
-              // Occasion dropdown
-              Expanded(child: Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return DropdownButtonFormField<String>(
-                    value: dashProvider.selectedOccasion,
-                    decoration: const InputDecoration(
-                      labelText: 'Occasion',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: DashBoardProvider.occasionOptions.map((o) => 
-                      DropdownMenuItem(value: o, child: Text(o))).toList(),
-                    onChanged: (val) {
-                      dashProvider.selectedOccasion = val;
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              )),
-            ],
-          ),
+          _responsiveFields(context, [
+            // Neckline dropdown  
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.selectedNeckline,
+                  decoration: const InputDecoration(
+                    labelText: 'Neckline',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: DashBoardProvider.necklineOptions.map((n) => 
+                    DropdownMenuItem(value: n, child: Text(n))).toList(),
+                  onChanged: (val) {
+                    dashProvider.selectedNeckline = val;
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+            // Occasion dropdown
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return DropdownButtonFormField<String>(
+                  value: dashProvider.selectedOccasion,
+                  decoration: const InputDecoration(
+                    labelText: 'Occasion',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: DashBoardProvider.occasionOptions.map((o) => 
+                    DropdownMenuItem(value: o, child: Text(o))).toList(),
+                  onChanged: (val) {
+                    dashProvider.selectedOccasion = val;
+                    dashProvider.updateUI();
+                  },
+                );
+              },
+            ),
+          ]),
           
           const Gap(defaultPadding * 2),
           _sectionHeader('Material & Care'),
