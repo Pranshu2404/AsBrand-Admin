@@ -295,7 +295,12 @@ class ProTypeRef {
 
   ProTypeRef.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    type = json['type'];
+    // Handle 'type' being either a plain String or a populated object
+    if (json['type'] is String) {
+      type = json['type'];
+    } else if (json['type'] is Map) {
+      type = json['type']['name'] ?? json['type']['_id']?.toString();
+    }
   }
 
   Map<String, dynamic> toJson() {

@@ -788,9 +788,12 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     labelText: 'Main Image *',
                     imageFile: dashProvider.selectedMainImage,
                     imageUrlForUpdateImage: widget.product?.images.safeElementAt(0)?.url,
+                    isUploading: dashProvider.imageUploadingState[1] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[1],
                     onTap: () => dashProvider.pickImage(imageCardNumber: 1),
                     onRemoveImage: () {
                       dashProvider.selectedMainImage = null;
+                      dashProvider.uploadedImageUrls.remove(1);
                       dashProvider.updateUI();
                     },
                   );
@@ -802,9 +805,12 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     labelText: 'Image 2',
                     imageFile: dashProvider.selectedSecondImage,
                     imageUrlForUpdateImage: widget.product?.images.safeElementAt(1)?.url,
+                    isUploading: dashProvider.imageUploadingState[2] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[2],
                     onTap: () => dashProvider.pickImage(imageCardNumber: 2),
                     onRemoveImage: () {
                       dashProvider.selectedSecondImage = null;
+                      dashProvider.uploadedImageUrls.remove(2);
                       dashProvider.updateUI();
                     },
                   );
@@ -816,9 +822,12 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     labelText: 'Image 3',
                     imageFile: dashProvider.selectedThirdImage,
                     imageUrlForUpdateImage: widget.product?.images.safeElementAt(2)?.url,
+                    isUploading: dashProvider.imageUploadingState[3] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[3],
                     onTap: () => dashProvider.pickImage(imageCardNumber: 3),
                     onRemoveImage: () {
                       dashProvider.selectedThirdImage = null;
+                      dashProvider.uploadedImageUrls.remove(3);
                       dashProvider.updateUI();
                     },
                   );
@@ -830,9 +839,12 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     labelText: 'Image 4',
                     imageFile: dashProvider.selectedFourthImage,
                     imageUrlForUpdateImage: widget.product?.images.safeElementAt(3)?.url,
+                    isUploading: dashProvider.imageUploadingState[4] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[4],
                     onTap: () => dashProvider.pickImage(imageCardNumber: 4),
                     onRemoveImage: () {
                       dashProvider.selectedFourthImage = null;
+                      dashProvider.uploadedImageUrls.remove(4);
                       dashProvider.updateUI();
                     },
                   );
@@ -844,9 +856,12 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     labelText: 'Image 5',
                     imageFile: dashProvider.selectedFifthImage,
                     imageUrlForUpdateImage: widget.product?.images.safeElementAt(4)?.url,
+                    isUploading: dashProvider.imageUploadingState[5] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[5],
                     onTap: () => dashProvider.pickImage(imageCardNumber: 5),
                     onRemoveImage: () {
                       dashProvider.selectedFifthImage = null;
+                      dashProvider.uploadedImageUrls.remove(5);
                       dashProvider.updateUI();
                     },
                   );

@@ -8,6 +8,8 @@ class ProductImageCard extends StatelessWidget {
   final AppFile? imageFile;
   final VoidCallback onTap;
   final VoidCallback? onRemoveImage;
+  final bool isUploading;
+  final String? uploadedUrl;
 
   const ProductImageCard({
     Key? key,
@@ -16,6 +18,8 @@ class ProductImageCard extends StatelessWidget {
     required this.onTap,
     this.imageUrlForUpdateImage,
     this.onRemoveImage,
+    this.isUploading = false,
+    this.uploadedUrl,
   }) : super(key: key);
 
   @override
@@ -33,11 +37,29 @@ class ProductImageCard extends StatelessWidget {
               color: Colors.grey[200],
             ),
             child: GestureDetector(
-              onTap: onTap,
+              onTap: isUploading ? null : onTap,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  if (imageFile != null)
+                  if (isUploading)
+                    const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(strokeWidth: 3),
+                    )
+                  else if (uploadedUrl != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        uploadedUrl!,
+                        width: double.infinity,
+                        height: 80,
+                        fit: BoxFit.scaleDown,
+                        errorBuilder: (_, __, ___) =>
+                            Icon(Icons.broken_image, size: 50, color: Colors.grey[600]),
+                      ),
+                    )
+                  else if (imageFile != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: getFileImage(
@@ -61,10 +83,10 @@ class ProductImageCard extends StatelessWidget {
                     Icon(Icons.camera_alt, size: 50, color: Colors.grey[600]),
                   SizedBox(height: 8),
                   Text(
-                    labelText,
+                    isUploading ? 'Uploading...' : labelText,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[800],
+                      color: isUploading ? Colors.blue : Colors.grey[800],
                     ),
                   ),
                 ],
@@ -72,12 +94,12 @@ class ProductImageCard extends StatelessWidget {
             ),
           ),
         ),
-        if ( imageFile != null && onRemoveImage != null)
+        if ((imageFile != null || uploadedUrl != null) && !isUploading && onRemoveImage != null)
           Positioned(
             top: 0,
             right: 0,
             child: IconButton(
-              icon: Icon(Icons.close,color: Colors.red,),
+              icon: Icon(Icons.close, color: Colors.red),
               onPressed: onRemoveImage,
             ),
           ),

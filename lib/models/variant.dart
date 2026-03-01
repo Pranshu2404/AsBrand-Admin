@@ -50,7 +50,12 @@ class VariantTypeId {
   VariantTypeId.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
-    type = json['type'];
+    // Handle 'type' being either a plain String or a populated object
+    if (json['type'] is String) {
+      type = json['type'];
+    } else if (json['type'] is Map) {
+      type = json['type']['name'] ?? json['type']['_id']?.toString();
+    }
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }

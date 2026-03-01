@@ -149,7 +149,9 @@ DataRow productDataRow(Product productInfo,{Function? edit, Function? delete}) {
         Row(
           children: [
             Image.network(
-              productInfo.images?.first.url ?? '',
+              (productInfo.images != null && productInfo.images!.isNotEmpty)
+                  ? productInfo.images!.first.url ?? ''
+                  : '',
               height: 30,
               width: 30,
               errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
