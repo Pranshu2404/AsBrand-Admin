@@ -162,9 +162,8 @@ class DashBoardProvider extends ChangeNotifier {
               'variantTypeName': (row['variantType'] as VariantType).name,
               'items': row['selectedVariants'] ?? <String>[],
 
-            }).toList()), // <--- Correct: .toList() runs before jsonEncode closes
-        // New enhanced fields
-
+            }).toList()),
+        'imageUrls': jsonEncode(imageUrlsList),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': jsonEncode({
           'length': double.tryParse(productLengthCtrl.text) ?? 0,
