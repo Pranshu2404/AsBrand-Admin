@@ -30,8 +30,8 @@ class ProductImageCard extends StatelessWidget {
       children: [
         Card(
           child: Container(
-            height: 130,
-            width: size.width < 600 ? size.width * 0.25 : size.width * 0.12,
+            height: 250,
+            width: size.width < 600 ? size.width * 0.4 : size.width * 0.16,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: Colors.grey[200],
@@ -48,39 +48,45 @@ class ProductImageCard extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 3),
                     )
                   else if (uploadedUrl != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        uploadedUrl!,
-                        width: double.infinity,
-                        height: 80,
-                        fit: BoxFit.scaleDown,
-                        errorBuilder: (_, __, ___) =>
-                            Icon(Icons.broken_image, size: 50, color: Colors.grey[600]),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          uploadedUrl!,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              Icon(Icons.broken_image, size: 50, color: Colors.grey[600]),
+                        ),
                       ),
                     )
                   else if (imageFile != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: getFileImage(
-                        imageFile!,
-                        width: double.infinity,
-                        height: 80,
-                        fit: BoxFit.scaleDown,
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: getFileImage(
+                          imageFile!,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     )
                   else if (imageUrlForUpdateImage != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        imageUrlForUpdateImage ?? '',
-                        width: double.infinity,
-                        height: 80,
-                        fit: BoxFit.scaleDown,
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrlForUpdateImage ?? '',
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     )
                   else
-                    Icon(Icons.camera_alt, size: 50, color: Colors.grey[600]),
+                    Icon(Icons.camera_alt, size: 60, color: Colors.grey[600]),
                   SizedBox(height: 8),
                   Text(
                     isUploading ? 'Uploading...' : labelText,
@@ -89,6 +95,7 @@ class ProductImageCard extends StatelessWidget {
                       color: isUploading ? Colors.blue : Colors.grey[800],
                     ),
                   ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
