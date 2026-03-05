@@ -10,6 +10,7 @@ import '../../variants_type/variants_type_screen.dart';
 import '../../emi_plans/emi_plans_screen.dart';
 import '../../kyc/kyc_screen.dart';
 import '../../users/users_screen.dart';
+import '../../suppliers/supplier_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -62,6 +63,9 @@ class MainScreenProvider extends ChangeNotifier{
         break;
       case 'Users':
         selectedScreen = const UsersScreen();
+        break;
+      case 'Suppliers':
+        selectedScreen = const SupplierScreen();
         break;
       default:
         currentScreenName = 'Dashboard';

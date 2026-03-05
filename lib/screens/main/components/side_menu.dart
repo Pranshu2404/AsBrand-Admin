@@ -94,6 +94,13 @@ class SideMenu extends StatelessWidget {
               ),
               _buildMenuItem(
                 context: context,
+                title: 'Suppliers',
+                icon: 'assets/icons/menu_store.svg',
+                isSelected: mainProvider.currentScreenName == 'Suppliers',
+                onTap: () => context.mainScreenProvider.navigateToScreen('Suppliers'),
+              ),
+              _buildMenuItem(
+                context: context,
                 title: 'Coupons',
                 icon: 'assets/icons/menu_setting.svg',
                 isSelected: mainProvider.currentScreenName == 'Coupon',
