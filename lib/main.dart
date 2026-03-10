@@ -15,6 +15,7 @@ import 'screens/notification/provider/notification_provider.dart';
 import 'screens/order/provider/order_provider.dart';
 import 'screens/posters/provider/poster_provider.dart';
 import 'screens/sub_category/provider/sub_category_provider.dart';
+import 'screens/sub_sub_category/provider/sub_sub_category_provider.dart';
 import 'screens/variants/provider/variant_provider.dart';
 import 'screens/variants_type/provider/variant_type_provider.dart';
 import 'utility/constants.dart';
@@ -32,6 +33,7 @@ void main() async {
     ChangeNotifierProvider(create: (context) => MainScreenProvider()),
     ChangeNotifierProvider(create: (context) => CategoryProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => SubCategoryProvider(context.dataProvider)),
+    ChangeNotifierProvider(create: (context) => SubSubCategoryProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => BrandProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => VariantsTypeProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => VariantsProvider(context.dataProvider)),

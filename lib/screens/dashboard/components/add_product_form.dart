@@ -2,6 +2,7 @@ import '../../../models/brand.dart';
 import '../../../models/category.dart';
 import '../../../models/product.dart';
 import '../../../models/sub_category.dart';
+import '../../../models/sub_sub_category.dart';
 import '../../../models/variant_type.dart';
 import '../provider/dash_board_provider.dart';
 import '../../../utility/extensions.dart';
@@ -242,7 +243,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                   displayItem: (SubCategory? subCategory) => subCategory?.name ?? '',
                   onChanged: (newValue) {
                     if (newValue != null) {
-                      context.dashBoardProvider.filterBrand(newValue);
+                      context.dashBoardProvider.filterSubSubCategoryAndBrand(newValue);
                     }
                   },
                   validator: (value) {
@@ -255,6 +256,27 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
           ]),
           const Gap(defaultPadding),
           _responsiveFields(context, [
+            Consumer<DashBoardProvider>(
+              builder: (context, dashProvider, child) {
+                return CustomDropdown(
+                  key: ValueKey(dashProvider.selectedSubSubCategory?.sId),
+                  hintText: dashProvider.selectedSubSubCategory?.name ?? 'Sub Sub category *',
+                  items: dashProvider.subSubCategoriesBySubCategory,
+                  initialValue: dashProvider.selectedSubSubCategory,
+                  displayItem: (SubSubCategory? ssCategory) => ssCategory?.name ?? '',
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      dashProvider.selectedSubSubCategory = newValue;
+                      dashProvider.updateUI();
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null) return 'Please select sub sub category';
+                    return null;
+                  },
+                );
+              },
+            ),
             Consumer<DashBoardProvider>(
               builder: (context, dashProvider, child) {
                 return CustomDropdown(
@@ -276,6 +298,9 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                 );
               },
             ),
+          ]),
+          const Gap(defaultPadding),
+          _responsiveFields(context, [
             Consumer<DashBoardProvider>(
               builder: (context, dashProvider, child) {
                 return SwitchListTile(

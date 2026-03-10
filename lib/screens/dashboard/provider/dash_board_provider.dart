@@ -6,6 +6,7 @@ import 'package:admin/utility/snack_bar_helper.dart';
 
 import '../../../models/brand.dart';
 import '../../../models/sub_category.dart';
+import '../../../models/sub_sub_category.dart';
 import '../../../models/variant_type.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
@@ -73,6 +74,7 @@ class DashBoardProvider extends ChangeNotifier {
   //? dropdown value
   Category? selectedCategory;
   SubCategory? selectedSubCategory;
+  SubSubCategory? selectedSubSubCategory;
   Brand? selectedBrand;
 
   /// Each entry: { 'variantType': VariantType?, 'availableVariants': List<String>, 'selectedVariants': List<String> }
@@ -91,6 +93,7 @@ class DashBoardProvider extends ChangeNotifier {
       fifthImgXFile;
 
   List<SubCategory> subCategoriesByCategory = [];
+  List<SubSubCategory> subSubCategoriesBySubCategory = [];
   List<Brand> brandsBySubCategory = [];
 
   // Image upload state tracking
@@ -111,6 +114,7 @@ class DashBoardProvider extends ChangeNotifier {
         productQntCtrl.text.isNotEmpty &&
         selectedCategory != null &&
         selectedSubCategory != null &&
+        selectedSubSubCategory != null &&
         selectedBrand != null;
 
     bool isClothingValid = selectedGender != null;
@@ -147,6 +151,7 @@ class DashBoardProvider extends ChangeNotifier {
         'description': productDescCtrl.text,
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
+        'proSubSubCategoryId': selectedSubSubCategory?.sId ?? '',
         'proBrandId': selectedBrand?.sId ?? '',
         'price': productPriceCtrl.text,
         'offerPrice': productOffPriceCtrl.text.isEmpty
@@ -254,6 +259,7 @@ class DashBoardProvider extends ChangeNotifier {
         'description': productDescCtrl.text,
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
+        'proSubSubCategoryId': selectedSubSubCategory?.sId ?? '',
         'proBrandId': selectedBrand?.sId ?? '',
         'price': productPriceCtrl.text,
         'offerPrice': productOffPriceCtrl.text.isEmpty
@@ -487,9 +493,11 @@ class DashBoardProvider extends ChangeNotifier {
   //TODO: should complete filterSubcategory
   filterSubcategory(category) {
     selectedSubCategory = null;
+    selectedSubSubCategory = null;
     selectedBrand = null;
     selectedCategory = category;
     subCategoriesByCategory.clear();
+    subSubCategoriesBySubCategory.clear();
 
     final newList = _dataProvider.subCategories
         .where((subcategory) => subcategory.categoryId?.sId == category.sId)
@@ -499,15 +507,23 @@ class DashBoardProvider extends ChangeNotifier {
   }
 
   //TODO: should complete filterBrand
-  filterBrand(SubCategory subCategory) {
+  filterSubSubCategoryAndBrand(SubCategory subCategory) {
     selectedBrand = null;
+    selectedSubSubCategory = null;
     selectedSubCategory = subCategory;
     brandsBySubCategory.clear();
+    subSubCategoriesBySubCategory.clear();
 
-    final newList = _dataProvider.brands
+    final newSubSubList = _dataProvider.subSubCategories
+        .where((ssCategory) => ssCategory.subCategoryId?.sId == subCategory.sId)
+        .toList();
+    subSubCategoriesBySubCategory = newSubSubList;
+
+    final newBrandList = _dataProvider.brands
         .where((brand) => brand.subcategoryId?.sId == subCategory.sId)
         .toList();
-    brandsBySubCategory = newList;
+    brandsBySubCategory = newBrandList;
+    
     notifyListeners();
   }
 
@@ -614,6 +630,14 @@ class DashBoardProvider extends ChangeNotifier {
       selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
           (element) => element.sId == product.proSubCategoryId?.sId);
 
+      final newSubSubCategoryList = _dataProvider.subSubCategories
+          .where((ssCategory) =>
+              ssCategory.subCategoryId?.sId == product.proSubCategoryId?.sId)
+          .toList();
+      subSubCategoriesBySubCategory = newSubSubCategoryList;
+      selectedSubSubCategory = _dataProvider.subSubCategories.firstWhereOrNull(
+          (element) => element.sId == product.proSubSubCategoryId?.sId);
+
       final newListBrand = _dataProvider.brands
           .where((brand) =>
               brand.subcategoryId?.sId == product.proSubCategoryId?.sId)
@@ -691,12 +715,14 @@ class DashBoardProvider extends ChangeNotifier {
 
     selectedCategory = null;
     selectedSubCategory = null;
+    selectedSubSubCategory = null;
     selectedBrand = null;
     variantRows = [];
 
     productForUpdate = null;
 
     subCategoriesByCategory = [];
+    subSubCategoriesBySubCategory = [];
     brandsBySubCategory = [];
 
     // Clear upload state

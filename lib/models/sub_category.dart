@@ -2,11 +2,12 @@ class SubCategory {
   String? sId;
   String? name;
   CategoryId? categoryId;
+  String? image;
   String? createdAt;
   String? updatedAt;
 
   SubCategory(
-      {this.sId, this.name, this.categoryId, this.createdAt, this.updatedAt});
+      {this.sId, this.name, this.categoryId, this.image, this.createdAt, this.updatedAt});
 
   SubCategory.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -16,6 +17,7 @@ class SubCategory {
             ? new CategoryId.fromJson(json['categoryId'])
             : CategoryId(sId: json['categoryId'].toString()))
         : null;
+    image = json['image'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }
@@ -27,6 +29,7 @@ class SubCategory {
     if (this.categoryId != null) {
       data['categoryId'] = this.categoryId!.toJson();
     }
+    data['image'] = this.image;
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     return data;

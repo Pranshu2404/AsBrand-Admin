@@ -6,6 +6,7 @@ import '../screens/main/provider/main_screen_provider.dart';
 import '../screens/notification/provider/notification_provider.dart';
 import '../screens/posters/provider/poster_provider.dart';
 import '../screens/sub_category/provider/sub_category_provider.dart';
+import '../screens/sub_sub_category/provider/sub_sub_category_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../core/data/data_provider.dart';
@@ -19,6 +20,7 @@ extension Providers on BuildContext {
   MainScreenProvider get mainScreenProvider => Provider.of<MainScreenProvider>(this, listen: false);
   CategoryProvider get categoryProvider => Provider.of<CategoryProvider>(this, listen: false);
   SubCategoryProvider get subCategoryProvider => Provider.of<SubCategoryProvider>(this, listen: false);
+  SubSubCategoryProvider get subSubCategoryProvider => Provider.of<SubSubCategoryProvider>(this, listen: false);
   BrandProvider get brandProvider => Provider.of<BrandProvider>(this, listen: false);
   VariantsTypeProvider get variantTypeProvider => Provider.of<VariantsTypeProvider>(this, listen: false);
   VariantsProvider get variantProvider => Provider.of<VariantsProvider>(this, listen: false);

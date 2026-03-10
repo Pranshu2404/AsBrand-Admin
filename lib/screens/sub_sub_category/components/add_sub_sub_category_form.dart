@@ -1,27 +1,28 @@
-import '../../../models/sub_category.dart';
-import '../provider/brand_provider.dart';
-import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
-import '../../../models/brand.dart';
+import '../../../models/category.dart';
+import '../../../models/sub_category.dart';
+import '../../../models/sub_sub_category.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/extensions.dart';
 import '../../../widgets/custom_dropdown.dart';
 import '../../../widgets/category_image_card.dart';
 import '../../../widgets/custom_text_field.dart';
+import '../provider/sub_sub_category_provider.dart';
 
-class BrandSubmitForm extends StatelessWidget {
-  final Brand? brand;
+class SubSubCategorySubmitForm extends StatelessWidget {
+  final SubSubCategory? subSubCategory;
 
-  const BrandSubmitForm({super.key, this.brand});
+  const SubSubCategorySubmitForm({super.key, this.subSubCategory});
 
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    context.brandProvider.setDataForUpdateBrand(brand);
+    context.subSubCategoryProvider.setDataForUpdateSubSubCategory(subSubCategory);
     return SingleChildScrollView(
       child: Form(
-        key: context.brandProvider.addBrandFormKey,
+        key: context.subSubCategoryProvider.addSubSubCategoryFormKey,
         child: Container(
           padding: EdgeInsets.all(defaultPadding),
           width: size.width * 0.5,
@@ -33,12 +34,12 @@ class BrandSubmitForm extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Gap(defaultPadding),
-              Consumer<BrandProvider>(
+              Consumer<SubSubCategoryProvider>(
                 builder: (context, provider, child) {
                   return CategoryImageCard(
-                    labelText: "Brand",
+                    labelText: "Sub SubCategory",
                     imageFile: provider.selectedImage,
-                    imageUrlForUpdateImage: brand?.image,
+                    imageUrlForUpdateImage: subSubCategory?.image,
                     onTap: () {
                       provider.pickImage();
                     },
@@ -49,20 +50,47 @@ class BrandSubmitForm extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Consumer<BrandProvider>(
-                      builder: (context, brandProvider, child) {
-                        return CustomDropdown<SubCategory>(
-                          initialValue: brandProvider.selectedSubCategory,
-                          items: context.dataProvider.subCategories,
-                          hintText: brandProvider.selectedSubCategory?.name ?? 'Select Sub Category',
-                          displayItem: (SubCategory? subCategory) => subCategory?.name ?? '',
+                    child: Consumer<SubSubCategoryProvider>(
+                      builder: (context, provider, child) {
+                        return CustomDropdown<Category>(
+                          initialValue: provider.selectedCategory,
+                          hintText: provider.selectedCategory?.name ?? 'Select Category',
+                          items: context.dataProvider.categories,
+                          displayItem: (Category? category) => category?.name ?? '',
                           onChanged: (newValue) {
-                            brandProvider.selectedSubCategory = newValue;
-                            brandProvider.updateUI();
+                            if (newValue != null) {
+                              provider.selectedCategory = newValue;
+                              provider.selectedSubCategory = null; // Reset sub-category
+                              provider.updateUi();
+                            }
                           },
                           validator: (value) {
                             if (value == null) {
-                              return 'Please select a Sub Category';
+                              return 'Please select a category';
+                            }
+                            return null;
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: Consumer<SubSubCategoryProvider>(
+                      builder: (context, provider, child) {
+                        return CustomDropdown<SubCategory>(
+                          initialValue: provider.selectedSubCategory,
+                          hintText: provider.selectedSubCategory?.name ?? 'Select Sub Category',
+                          items: context.dataProvider.getSubCategoriesForCategory(provider.selectedCategory),
+                          displayItem: (SubCategory? subCat) => subCat?.name ?? '',
+                          onChanged: (newValue) {
+                            if (newValue != null) {
+                              provider.selectedSubCategory = newValue;
+                              provider.updateUi();
+                            }
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Please select a sub category';
                             }
                             return null;
                           },
@@ -72,12 +100,12 @@ class BrandSubmitForm extends StatelessWidget {
                   ),
                   Expanded(
                     child: CustomTextField(
-                      controller: context.brandProvider.brandNameCtrl,
-                      labelText: 'Brand Name',
+                      controller: context.subSubCategoryProvider.subSubCategoryNameCtrl,
+                      labelText: 'Sub SubCategory Name',
                       onSave: (val) {},
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a brand name';
+                          return 'Please enter a name';
                         }
                         return null;
                       },
@@ -99,8 +127,8 @@ class BrandSubmitForm extends StatelessWidget {
                     },
                     child: Text('Cancel'),
                   ),
-                  SizedBox(width: defaultPadding),
-                  Consumer<BrandProvider>(
+                  Gap(defaultPadding),
+                  Consumer<SubSubCategoryProvider>(
                     builder: (context, provider, child) {
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -108,9 +136,9 @@ class BrandSubmitForm extends StatelessWidget {
                           backgroundColor: primaryColor,
                         ),
                         onPressed: provider.isSubmitting ? null : () async {
-                          if (provider.addBrandFormKey.currentState!.validate()) {
-                            provider.addBrandFormKey.currentState!.save();
-                            await provider.submitBrand();
+                          if (provider.addSubSubCategoryFormKey.currentState!.validate()) {
+                            provider.addSubSubCategoryFormKey.currentState!.save();
+                            await provider.submitSubSubCategory();
                             if (context.mounted) Navigator.of(context).pop();
                           }
                         },
@@ -130,17 +158,14 @@ class BrandSubmitForm extends StatelessWidget {
   }
 }
 
-// How to show the category popup
-void showBrandForm(BuildContext context, Brand? brand) {
+void showAddSubSubCategoryForm(BuildContext context, SubSubCategory? subSubCategory) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: bgColor,
-        title: Center(child: Text('Add Brand'.toUpperCase(), style: TextStyle(color: primaryColor))),
-        content: BrandSubmitForm(
-          brand: brand,
-        ),
+        title: Center(child: Text('Add Sub SubCategory'.toUpperCase(), style: TextStyle(color: primaryColor))),
+        content: SubSubCategorySubmitForm(subSubCategory: subSubCategory),
       );
     },
   );

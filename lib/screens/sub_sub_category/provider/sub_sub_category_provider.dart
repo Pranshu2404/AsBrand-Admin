@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:admin/models/api_response.dart';
 import 'package:admin/utility/snack_bar_helper.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,18 +14,20 @@ import '../../../services/file_handling/file_service.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/category.dart';
 import '../../../models/sub_category.dart';
+import '../../../models/sub_sub_category.dart';
 import '../../../services/http_services.dart';
 
-class SubCategoryProvider extends ChangeNotifier {
+class SubSubCategoryProvider extends ChangeNotifier {
   HttpService service = HttpService();
   final DataProvider _dataProvider;
 
-  final addSubCategoryFormKey = GlobalKey<FormState>();
-  TextEditingController subCategoryNameCtrl = TextEditingController();
+  final addSubSubCategoryFormKey = GlobalKey<FormState>();
+  TextEditingController subSubCategoryNameCtrl = TextEditingController();
   Category? selectedCategory;
-  SubCategory? subCategoryForUpdate;
+  SubCategory? selectedSubCategory;
+  SubSubCategory? subSubCategoryForUpdate;
 
-  SubCategoryProvider(this._dataProvider);
+  SubSubCategoryProvider(this._dataProvider);
 
   bool _isSubmitting = false;
   bool get isSubmitting => _isSubmitting;
@@ -35,29 +36,29 @@ class SubCategoryProvider extends ChangeNotifier {
   String? uploadedImageUrl;
   bool isImageUploading = false;
 
-  //TODO: should complete addSubCategory
-  addSubCategory() async {
+  addSubSubCategory() async {
     try {
       _isSubmitting = true;
       notifyListeners();
-      Map<String, dynamic> subCategory = {
-        'name': subCategoryNameCtrl.text,
+      Map<String, dynamic> subSubCategory = {
+        'name': subSubCategoryNameCtrl.text,
         'categoryId': selectedCategory?.sId,
+        'subCategoryId': selectedSubCategory?.sId,
         'image': uploadedImageUrl ?? 'no_url'
       };
 
       final response = await service.addItem(
-          endpointUrl: 'subCategories', itemData: subCategory);
+          endpointUrl: 'subSubCategories', itemData: subSubCategory);
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-          _dataProvider.getAllSubCategory(); // refresh in background
-          print('[SubCategory] Added successfully');
+          _dataProvider.getAllSubSubCategory(); // refresh in background
+          print('[SubSubCategory] Added successfully');
         } else {
           SnackBarHelper.showErrorSnackBar(
-              'Failed to add Sub Category: ${apiResponse.message}');
+              'Failed to add Sub SubCategory: ${apiResponse.message}');
         }
       } else {
         SnackBarHelper.showErrorSnackBar(
@@ -73,33 +74,33 @@ class SubCategoryProvider extends ChangeNotifier {
     }
   }
 
-  //TODO: should complete updateSubCategory
-  updateSubCategory() async {
+  updateSubSubCategory() async {
     try {
       _isSubmitting = true;
       notifyListeners();
-      if (subCategoryForUpdate != null) {
-        Map<String, dynamic> subCategory = {
-          'name': subCategoryNameCtrl.text,
+      if (subSubCategoryForUpdate != null) {
+        Map<String, dynamic> subSubCategory = {
+          'name': subSubCategoryNameCtrl.text,
           'categoryId': selectedCategory?.sId,
-          'image': uploadedImageUrl ?? subCategoryForUpdate?.image ?? 'no_url'
+          'subCategoryId': selectedSubCategory?.sId,
+          'image': uploadedImageUrl ?? subSubCategoryForUpdate?.image ?? 'no_url'
         };
 
         final response = await service.updateItem(
-            endpointUrl: 'subCategories',
-            itemData: subCategory,
-            itemId: subCategoryForUpdate?.sId ?? '');
+            endpointUrl: 'subSubCategories',
+            itemData: subSubCategory,
+            itemId: subSubCategoryForUpdate?.sId ?? '');
 
         if (response.isOk) {
           ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
           if (apiResponse.success == true) {
             clearFields();
             SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            print('[SubCategory] Updated successfully');
-            _dataProvider.getAllSubCategory(); // refresh in background
+            print('[SubSubCategory] Updated successfully');
+            _dataProvider.getAllSubSubCategory(); // refresh in background
           } else {
             SnackBarHelper.showErrorSnackBar(
-                'Failed to update Sub Category: ${apiResponse.message}');
+                'Failed to update Sub SubCategory: ${apiResponse.message}');
           }
         } else {
           SnackBarHelper.showErrorSnackBar(
@@ -116,12 +117,11 @@ class SubCategoryProvider extends ChangeNotifier {
     }
   }
 
-  //TODO: should complete submitSubCategory
-  Future<void> submitSubCategory() async {
-    if (subCategoryForUpdate == null) {
-      await addSubCategory();
+  Future<void> submitSubSubCategory() async {
+    if (subSubCategoryForUpdate == null) {
+      await addSubSubCategory();
     } else {
-      await updateSubCategory();
+      await updateSubSubCategory();
     }
   }
 
@@ -134,7 +134,6 @@ class SubCategoryProvider extends ChangeNotifier {
       try {
         XFile finalImage = image;
 
-        // Crop & Compress (Not supported out of the box on Web or Desktop)
         if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
           final croppedFile = await ImageCropper().cropImage(
             sourcePath: image.path,
@@ -149,23 +148,24 @@ class SubCategoryProvider extends ChangeNotifier {
 
           if (croppedFile != null) {
             final dir = await getTemporaryDirectory();
-            final targetPath = '${dir.absolute.path}/temp_${DateTime.now().millisecondsSinceEpoch}.jpg';
-            
-            final compressedFile = await FlutterImageCompress.compressAndGetFile(
+            final targetPath =
+                '${dir.absolute.path}/temp_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+            final compressedFile =
+                await FlutterImageCompress.compressAndGetFile(
               croppedFile.path,
               targetPath,
               quality: 70,
               minWidth: 500,
               minHeight: 500,
             );
-            
+
             if (compressedFile != null) {
               finalImage = compressedFile;
             } else {
               finalImage = XFile(croppedFile.path);
             }
           } else {
-            // User canceled cropping
             isImageUploading = false;
             notifyListeners();
             return;
@@ -175,7 +175,6 @@ class SubCategoryProvider extends ChangeNotifier {
         selectedImage = AppFile(finalImage.path);
         notifyListeners();
 
-        // Upload the image
         FormData formData;
         if (kIsWeb) {
           String fileName = finalImage.name;
@@ -187,12 +186,13 @@ class SubCategoryProvider extends ChangeNotifier {
           formData = FormData({'image': await MultipartFile(filePath, filename: fileName)});
         }
 
-        final url = await service.uploadImage(imageData: formData, endpoint: 'categories/upload-image');
+        final url = await service.uploadImage(
+            imageData: formData, endpoint: 'categories/upload-image');
         if (url != null) {
           uploadedImageUrl = url;
           print('Image uploaded: $url');
         } else {
-          SnackBarHelper.showErrorSnackBar('Failed to upload image. Please try again.');
+          SnackBarHelper.showErrorSnackBar('Failed to upload image.');
           selectedImage = null;
         }
       } catch (e) {
@@ -206,45 +206,47 @@ class SubCategoryProvider extends ChangeNotifier {
     }
   }
 
-  //TODO: should complete deleteSubCategory
-  deleteSubCategory(SubCategory subCategory) async {
+  deleteSubSubCategory(SubSubCategory subSubCategory) async {
     try {
-      Response response = await service.deleteItem(
-          endpointUrl: 'subCategories', itemId: subCategory.sId ?? '');
+      final response = await service.deleteItem(
+          endpointUrl: 'subSubCategories', itemId: subSubCategory.sId ?? '');
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar(
-              'Sub Category Deleted Successfully');
-          print('[SubCategory] Deleted successfully');
-          _dataProvider.getAllSubCategory(); // refresh in background
+              'Sub SubCategory Deleted Successfully');
+          print('[SubSubCategory] Deleted successfully');
+          _dataProvider.getAllSubSubCategory(); // refresh in background
         }
       } else {
         SnackBarHelper.showErrorSnackBar(
             'Error ${response.body?['message'] ?? response.statusText}');
       }
     } catch (e) {
-      print('[SubCategory] Delete exception: $e');
+      print('[SubSubCategory] Delete exception: $e');
       SnackBarHelper.showErrorSnackBar('Failed to delete: $e');
     }
   }
 
-  setDataForUpdateSubCategory(SubCategory? subCategory) {
-    if (subCategory != null) {
-      subCategoryForUpdate = subCategory;
-      subCategoryNameCtrl.text = subCategory.name ?? '';
+  setDataForUpdateSubSubCategory(SubSubCategory? subSubCategory) {
+    if (subSubCategory != null) {
+      subSubCategoryForUpdate = subSubCategory;
+      subSubCategoryNameCtrl.text = subSubCategory.name ?? '';
       selectedCategory = _dataProvider.categories.firstWhereOrNull(
-          (element) => element.sId == subCategory.categoryId?.sId);
-      uploadedImageUrl = subCategory.image;
+          (element) => element.sId == subSubCategory.categoryId?.sId);
+      selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
+          (element) => element.sId == subSubCategory.subCategoryId?.sId);
+      uploadedImageUrl = subSubCategory.image;
     } else {
       clearFields();
     }
   }
 
   clearFields() {
-    subCategoryNameCtrl.clear();
+    subSubCategoryNameCtrl.clear();
     selectedCategory = null;
-    subCategoryForUpdate = null;
+    selectedSubCategory = null;
+    subSubCategoryForUpdate = null;
     selectedImage = null;
     uploadedImageUrl = null;
     isImageUploading = false;
