@@ -62,10 +62,10 @@ class HttpService extends GetConnect {
   }
 
   /// Upload a single image to Cloudinary via the backend
-  Future<String?> uploadImage({required dynamic imageData}) async {
+  Future<String?> uploadImage({required dynamic imageData, String endpoint = 'products/upload-image'}) async {
     try {
       final response = await GetConnect(timeout: const Duration(seconds: 120))
-          .post('$baseUrl/products/upload-image', imageData);
+          .post('$baseUrl/$endpoint', imageData);
       if (response.isOk && response.body != null) {
         final body = response.body;
         if (body['success'] == true && body['data'] != null) {

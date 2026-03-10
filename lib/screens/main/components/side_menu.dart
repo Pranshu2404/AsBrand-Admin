@@ -63,6 +63,13 @@ class SideMenu extends StatelessWidget {
               ),
               _buildMenuItem(
                 context: context,
+                title: 'Sub Sub Category',
+                icon: 'assets/icons/menu_task.svg',
+                isSelected: mainProvider.currentScreenName == 'SubSubCategory',
+                onTap: () => context.mainScreenProvider.navigateToScreen('SubSubCategory'),
+              ),
+              _buildMenuItem(
+                context: context,
                 title: 'Brands',
                 icon: 'assets/icons/menu_doc.svg',
                 isSelected: mainProvider.currentScreenName == 'Brands',

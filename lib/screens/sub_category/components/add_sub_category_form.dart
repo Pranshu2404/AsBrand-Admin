@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../models/category.dart';
 import '../../../utility/constants.dart';
 import '../../../widgets/custom_dropdown.dart';
+import '../../../widgets/category_image_card.dart';
 import '../../../widgets/custom_text_field.dart';
 
 class SubCategorySubmitForm extends StatelessWidget {
@@ -32,6 +33,19 @@ class SubCategorySubmitForm extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Gap(defaultPadding),
+              Consumer<SubCategoryProvider>(
+                builder: (context, subCatProvider, child) {
+                  return CategoryImageCard(
+                    labelText: "Sub Category",
+                    imageFile: subCatProvider.selectedImage,
+                    imageUrlForUpdateImage: subCategory?.image,
+                    onTap: () {
+                      subCatProvider.pickImage();
+                    },
+                  );
+                },
+              ),
               Gap(defaultPadding),
               Row(
                 children: [

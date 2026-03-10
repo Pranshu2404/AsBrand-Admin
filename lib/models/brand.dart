@@ -2,6 +2,7 @@ class Brand {
   String? sId;
   String? name;
   SubcategoryId? subcategoryId;
+  String? image;
   String? createdAt;
   String? updatedAt;
 
@@ -9,6 +10,7 @@ class Brand {
       {this.sId,
         this.name,
         this.subcategoryId,
+        this.image,
         this.createdAt,
         this.updatedAt});
 
@@ -20,6 +22,7 @@ class Brand {
             ? new SubcategoryId.fromJson(json['subcategoryId'])
             : SubcategoryId(sId: json['subcategoryId'].toString()))
         : null;
+    image = json['image'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }
@@ -31,6 +34,7 @@ class Brand {
     if (this.subcategoryId != null) {
       data['subcategoryId'] = this.subcategoryId!.toJson();
     }
+    data['image'] = this.image;
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     return data;

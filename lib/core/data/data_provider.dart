@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import '../../../models/category.dart';
 import '../../models/brand.dart';
 import '../../models/sub_category.dart';
+import '../../models/sub_sub_category.dart';
 import '../../models/variant.dart';
 
 class DataProvider extends ChangeNotifier {
@@ -40,6 +41,11 @@ class DataProvider extends ChangeNotifier {
 
   List<SubCategory> get subCategories => _filteredSubCategories;
   List<SubCategory> get allSubCategories => _allSubCategories;
+
+  List<SubSubCategory> _allSubSubCategories = [];
+  List<SubSubCategory> _filteredSubSubCategories = [];
+  List<SubSubCategory> get subSubCategories => _filteredSubSubCategories;
+  List<SubSubCategory> get allSubSubCategories => _allSubSubCategories;
 
   List<Brand> _allBrands = [];
   List<Brand> _filteredBrands = [];
@@ -86,6 +92,7 @@ class DataProvider extends ChangeNotifier {
       getAllProduct().catchError((e) { print('[DataProvider] ERROR loading products: $e'); return <Product>[]; }),
       getAllCategory().catchError((e) { print('[DataProvider] ERROR loading categories: $e'); return <Category>[]; }),
       getAllSubCategory().catchError((e) { print('[DataProvider] ERROR loading subCategories: $e'); return <SubCategory>[]; }),
+      getAllSubSubCategory().catchError((e) { print('[DataProvider] ERROR loading subSubCategories: $e'); return <SubSubCategory>[]; }),
       getAllBrands().catchError((e) { print('[DataProvider] ERROR loading brands: $e'); return <Brand>[]; }),
       getAllVariantType().catchError((e) { print('[DataProvider] ERROR loading variantTypes: $e'); return <VariantType>[]; }),
       getAllVariant().catchError((e) { print('[DataProvider] ERROR loading variants: $e'); return <Variant>[]; }),
@@ -173,6 +180,49 @@ class DataProvider extends ChangeNotifier {
       final lowerKeyword = keyword.toLowerCase();
       _filteredSubCategories = _allSubCategories.where((subcategory) {
         return (subcategory.name ?? '').toLowerCase().contains(lowerKeyword);
+      }).toList();
+    }
+    notifyListeners();
+  }
+
+  List<SubCategory> getSubCategoriesForCategory(Category? category) {
+    if (category == null) return [];
+    return _allSubCategories.where((sub) => sub.categoryId?.sId == category.sId).toList();
+  }
+
+  Future<List<SubSubCategory>> getAllSubSubCategory({bool showSnack = false}) async {
+    try {
+      Response response = await service.getItems(endpointUrl: 'subSubCategories');
+      if (response.isOk) {
+        ApiResponse<List<SubSubCategory>> apiResponse =
+            ApiResponse<List<SubSubCategory>>.fromJson(
+          response.body,
+          (json) =>
+              (json as List).map((item) => SubSubCategory.fromJson(item)).toList(),
+        );
+        _allSubSubCategories = apiResponse.data ?? [];
+        _filteredSubSubCategories = List.from(_allSubSubCategories);
+        print('[DataProvider] SubSubCategories loaded: ${_allSubSubCategories.length}');
+        notifyListeners();
+        if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else {
+        print('[DataProvider] SubSubCategories API error: ${response.statusCode} ${response.statusText}');
+      }
+    } catch (e) {
+      print('[DataProvider] SubSubCategories exception: $e');
+      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
+      rethrow;
+    }
+    return _filteredSubSubCategories;
+  }
+
+  void filterSubSubCategories(String keyword) {
+    if (keyword.isEmpty) {
+      _filteredSubSubCategories = List.from(_allSubSubCategories);
+    } else {
+      final lowerKeyword = keyword.toLowerCase();
+      _filteredSubSubCategories = _allSubSubCategories.where((ssCategory) {
+        return (ssCategory.name ?? '').toLowerCase().contains(lowerKeyword);
       }).toList();
     }
     notifyListeners();

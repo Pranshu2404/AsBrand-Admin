@@ -22,6 +22,7 @@ class Product {
   // Categories
   ProRef? proCategoryId;
   ProRef? proSubCategoryId;
+  ProRef? proSubSubCategoryId;
   ProRef? proBrandId;
   ProTypeRef? proVariantTypeId;
   List<String>? proVariantId;
@@ -71,6 +72,7 @@ class Product {
     this.dimensions,
     this.proCategoryId,
     this.proSubCategoryId,
+    this.proSubSubCategoryId,
     this.proBrandId,
     this.proVariantTypeId,
     this.proVariantId,
@@ -120,6 +122,11 @@ class Product {
         ? (json['proSubCategoryId'] is Map
             ? ProRef.fromJson(json['proSubCategoryId'])
             : ProRef(sId: json['proSubCategoryId'].toString()))
+        : null;
+    proSubSubCategoryId = json['proSubSubCategoryId'] != null
+        ? (json['proSubSubCategoryId'] is Map
+            ? ProRef.fromJson(json['proSubSubCategoryId'])
+            : ProRef(sId: json['proSubSubCategoryId'].toString()))
         : null;
     proBrandId = json['proBrandId'] != null
         ? (json['proBrandId'] is Map
@@ -188,6 +195,7 @@ class Product {
     if (dimensions != null) data['dimensions'] = dimensions!.toJson();
     if (proCategoryId != null) data['proCategoryId'] = proCategoryId!.toJson();
     if (proSubCategoryId != null) data['proSubCategoryId'] = proSubCategoryId!.toJson();
+    if (proSubSubCategoryId != null) data['proSubSubCategoryId'] = proSubSubCategoryId!.toJson();
     if (proBrandId != null) data['proBrandId'] = proBrandId!.toJson();
     if (proVariantTypeId != null) data['proVariantTypeId'] = proVariantTypeId!.toJson();
     data['proVariantId'] = proVariantId;

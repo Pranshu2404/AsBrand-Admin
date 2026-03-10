@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../sub_category/sub_category_screen.dart';
+import '../../sub_sub_category/sub_sub_category_screen.dart';
 
 class MainScreenProvider extends ChangeNotifier{
   Widget selectedScreen = DashboardScreen();
@@ -33,6 +34,9 @@ class MainScreenProvider extends ChangeNotifier{
         break;
       case 'SubCategory':
         selectedScreen = SubCategoryScreen();
+        break;
+      case 'SubSubCategory':
+        selectedScreen = SubSubCategoryScreen();
         break;
       case 'Brands':
         selectedScreen = BrandScreen();
