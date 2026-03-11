@@ -129,7 +129,8 @@ class _SuppliersTab extends StatelessWidget {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
-                      columnSpacing: defaultPadding,
+                      horizontalMargin: 30,
+                      columnSpacing: 80,
                       columns: const [
                         DataColumn(label: Text("Store")),
                         DataColumn(label: Text("Owner")),
@@ -157,14 +158,17 @@ class _SuppliersTab extends StatelessWidget {
                           DataCell(Text(s.phone ?? 'N/A')),
                           DataCell(Text([s.city, s.state].where((e) => e != null && e.isNotEmpty).join(', '))),
                           DataCell(_statusBadge(isPending ? 'Pending' : 'Approved', isPending ? Colors.orange : Colors.green)),
-                          DataCell(isPending
-                            ? Row(mainAxisSize: MainAxisSize.min, children: [
-                                _actionBtn('Approve', Colors.green, () => provider.approveSupplier(s.id)),
-                                const Gap(8),
-                                _actionBtn('Reject', Colors.red, () => provider.rejectSupplier(s.id)),
-                              ])
-                            : const Text('✓ Active', style: TextStyle(color: Colors.green, fontSize: 12)),
-                          ),
+                          DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                            if (isPending) ...[
+                              _actionBtn('Approve', Colors.green, () {
+                                _showConfirmDialog(context, 'Approve Supplier', 'Approve ${s.storeName}?', () => provider.approveSupplier(s.id));
+                              }),
+                              const Gap(8),
+                            ],
+                            _actionBtn(isPending ? 'Reject' : 'Revoke', Colors.red, () {
+                              _showConfirmDialog(context, isPending ? 'Reject Supplier' : 'Revoke Supplier', 'Are you sure you want to ${isPending ? 'reject' : 'revoke'} ${s.storeName}?', () => provider.rejectSupplier(s.id));
+                            }),
+                          ])),
                         ]);
                       }).toList(),
                     ),
@@ -225,7 +229,8 @@ class _ProductsTab extends StatelessWidget {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
-                      columnSpacing: defaultPadding,
+                      horizontalMargin: 30,
+                      columnSpacing: 80,
                       columns: const [
                         DataColumn(label: Text("Product")),
                         DataColumn(label: Text("Price")),
@@ -238,11 +243,23 @@ class _ProductsTab extends StatelessWidget {
                       rows: provider.products.map((p) {
                         final isPending = !p.isApproved;
                         return DataRow(cells: [
-                          DataCell(SizedBox(
-                            width: 200,
-                            child: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w500)),
-                          )),
+                          DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                            if (p.imageUrl != null && p.imageUrl!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Image.network(p.imageUrl!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (c,e,s) => const Icon(Icons.image_not_supported)),
+                              )
+                            else
+                              const Padding(
+                                padding: EdgeInsets.only(right: 8.0),
+                                child: Icon(Icons.image, size: 40, color: Colors.grey),
+                              ),
+                            SizedBox(
+                              width: 150,
+                              child: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontWeight: FontWeight.w500)),
+                            ),
+                          ])),
                           DataCell(Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
                             if (p.offerPrice != null) ...[
                               Text('₹${p.offerPrice!.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -254,14 +271,17 @@ class _ProductsTab extends StatelessWidget {
                           DataCell(Text(p.categoryName ?? 'N/A')),
                           DataCell(Text(p.supplierStoreName ?? 'N/A', style: const TextStyle(fontSize: 12))),
                           DataCell(_statusBadge(isPending ? 'Pending' : 'Approved', isPending ? Colors.orange : Colors.green)),
-                          DataCell(isPending
-                            ? Row(mainAxisSize: MainAxisSize.min, children: [
-                                _actionBtn('Approve', Colors.green, () => provider.approveProduct(p.id)),
-                                const Gap(8),
-                                _actionBtn('Reject', Colors.red, () => provider.rejectProduct(p.id)),
-                              ])
-                            : const Text('✓ Live', style: TextStyle(color: Colors.green, fontSize: 12)),
-                          ),
+                          DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                            if (isPending) ...[
+                              _actionBtn('Approve', Colors.green, () {
+                                _showConfirmDialog(context, 'Approve Product', 'Approve ${p.name}?', () => provider.approveProduct(p.id));
+                              }),
+                              const Gap(8),
+                            ],
+                            _actionBtn(isPending ? 'Reject' : 'Remove', Colors.red, () {
+                              _showConfirmDialog(context, isPending ? 'Reject Product' : 'Remove Product', 'Are you sure you want to ${isPending ? 'reject' : 'remove'} this product?', () => provider.rejectProduct(p.id));
+                            }),
+                          ])),
                         ]);
                       }).toList(),
                     ),
@@ -336,6 +356,30 @@ Widget _emptyState(IconData icon, String message) {
         const SizedBox(height: 16),
         Text(message, style: const TextStyle(color: Colors.grey, fontSize: 16)),
       ]),
+    ),
+  );
+}
+
+void _showConfirmDialog(BuildContext context, String title, String content, VoidCallback onConfirm) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: bgColor,
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      content: Text(content, style: const TextStyle(color: Colors.white)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            onConfirm();
+          },
+          child: const Text('Confirm', style: TextStyle(color: Colors.red)),
+        ),
+      ],
     ),
   );
 }

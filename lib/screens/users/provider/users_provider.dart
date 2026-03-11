@@ -57,8 +57,52 @@ class UsersProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Delete user
+  Future<void> deleteUser(AppUser user) async {
+    try {
+      Response response = await service.deleteItem(endpointUrl: 'users', itemId: user.sId ?? '');
+      if (response.isOk) {
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+        if (apiResponse.success == true) {
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+          getAllUsers();
+        } else {
+          SnackBarHelper.showErrorSnackBar('Failed to delete user: ${apiResponse.message}');
+        }
+      } else {
+        SnackBarHelper.showErrorSnackBar('Error ${response.body?['message'] ?? response.statusText}');
+      }
+    } catch (e) {
+      log('Delete User Exception: $e');
+      SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+    }
+  }
+
+  // Update user role
+  Future<void> updateUserRole(AppUser user, String newRole) async {
+    try {
+      Map<String, dynamic> data = {'role': newRole};
+      Response response = await service.updateItem(endpointUrl: 'users', itemId: '${user.sId}/role', itemData: data);
+      if (response.isOk) {
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+        if (apiResponse.success == true) {
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+          getAllUsers();
+        } else {
+          SnackBarHelper.showErrorSnackBar('Failed to update role: ${apiResponse.message}');
+        }
+      } else {
+        SnackBarHelper.showErrorSnackBar('Error ${response.body?['message'] ?? response.statusText}');
+      }
+    } catch (e) {
+      log('Update Role Exception: $e');
+      SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+    }
+  }
+
   // Get statistics
   int get totalUsers => _allUsers.length;
-  int get adminCount => _allUsers.where((u) => u.isAdmin).length;
-  int get customerCount => _allUsers.where((u) => !u.isAdmin).length;
+  int get adminCount => _allUsers.where((u) => u.role == 'admin').length;
+  int get customerCount => _allUsers.where((u) => u.role == 'user').length;
+  int get supplierCount => _allUsers.where((u) => u.role == 'supplier').length;
 }

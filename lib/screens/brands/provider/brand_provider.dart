@@ -33,7 +33,7 @@ class BrandProvider extends ChangeNotifier {
   bool get isSubmitting => _isSubmitting;
 
   AppFile? selectedImage;
-  String? uploadedImageUrl;
+  XFile? imgXFile;
   bool isImageUploading = false;
 
   //TODO: should complete addBrand
@@ -41,14 +41,19 @@ class BrandProvider extends ChangeNotifier {
     try {
       _isSubmitting = true;
       notifyListeners();
-      Map<String, dynamic> brand = {
+      Map<String, dynamic> formDataMap = {
         'name': brandNameCtrl.text,
         'subcategoryId': selectedSubCategory?.sId,
-        'image': uploadedImageUrl ?? 'no_url'
+        'image': 'no_data', // backend will override
       };
 
+      final FormData form = await createFormData(
+        imgXFile: imgXFile,
+        formData: formDataMap,
+      );
+
       final response =
-          await service.addItem(endpointUrl: 'brands', itemData: brand);
+          await service.addItem(endpointUrl: 'brands', itemData: form);
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
@@ -80,15 +85,18 @@ class BrandProvider extends ChangeNotifier {
       _isSubmitting = true;
       notifyListeners();
       if (brandForUpdate != null) {
-        Map<String, dynamic> brand = {
+        Map<String, dynamic> formDataMap = {
           'name': brandNameCtrl.text,
           'subcategoryId': selectedSubCategory?.sId,
-          'image': uploadedImageUrl ?? brandForUpdate?.image ?? 'no_url'
+          'image': brandForUpdate?.image ?? '',
         };
+
+        final FormData form = await createFormData(
+            imgXFile: imgXFile, formData: formDataMap);
 
         final response = await service.updateItem(
             endpointUrl: 'brands',
-            itemData: brand,
+            itemData: form,
             itemId: brandForUpdate?.sId ?? '');
 
         if (response.isOk) {
@@ -174,31 +182,11 @@ class BrandProvider extends ChangeNotifier {
         }
 
         selectedImage = AppFile(finalImage.path);
+        imgXFile = finalImage;
         notifyListeners();
-
-        FormData formData;
-        if (kIsWeb) {
-          String fileName = finalImage.name;
-          Uint8List byteImg = await finalImage.readAsBytes();
-          formData = FormData({'image': MultipartFile(byteImg, filename: fileName)});
-        } else {
-          String filePath = finalImage.path;
-          String fileName = filePath.split('/').last;
-          formData = FormData({'image': await MultipartFile(filePath, filename: fileName)});
-        }
-
-        final url = await service.uploadImage(
-            imageData: formData, endpoint: 'categories/upload-image');
-        if (url != null) {
-          uploadedImageUrl = url;
-          print('Image uploaded: $url');
-        } else {
-          SnackBarHelper.showErrorSnackBar('Failed to upload image.');
-          selectedImage = null;
-        }
       } catch (e) {
-        print('Image upload error: $e');
-        SnackBarHelper.showErrorSnackBar('Error uploading image: $e');
+        print('Image pick error: $e');
+        SnackBarHelper.showErrorSnackBar('Error picking image: $e');
         selectedImage = null;
       } finally {
         isImageUploading = false;
@@ -235,7 +223,6 @@ class BrandProvider extends ChangeNotifier {
       brandNameCtrl.text = brand.name ?? '';
       selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
           (element) => element.sId == brand.subcategoryId?.sId);
-      uploadedImageUrl = brand.image;
     } else {
       clearFields();
     }
@@ -247,8 +234,28 @@ class BrandProvider extends ChangeNotifier {
     selectedSubCategory = null;
     brandForUpdate = null;
     selectedImage = null;
-    uploadedImageUrl = null;
+    imgXFile = null;
     isImageUploading = false;
+  }
+
+  //? to create form data for sending image with body
+  Future<FormData> createFormData(
+      {required XFile? imgXFile,
+      required Map<String, dynamic> formData}) async {
+    if (imgXFile != null) {
+      MultipartFile multipartFile;
+      if (kIsWeb) {
+        String fileName = imgXFile.name;
+        Uint8List byteImg = await imgXFile.readAsBytes();
+        multipartFile = MultipartFile(byteImg, filename: fileName);
+      } else {
+        String fileName = imgXFile.path.split('/').last;
+        multipartFile = MultipartFile(imgXFile.path, filename: fileName);
+      }
+      formData['img'] = multipartFile;
+    }
+    final FormData form = FormData(formData);
+    return form;
   }
 
   updateUI() {

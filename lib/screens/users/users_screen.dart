@@ -78,6 +78,14 @@ class UsersScreen extends StatelessWidget {
             const Gap(defaultPadding),
             _buildStatCard(
               context,
+              'Suppliers',
+              '${provider.supplierCount}',
+              Icons.storefront,
+              Colors.green,
+            ),
+            const Gap(defaultPadding),
+            _buildStatCard(
+              context,
               'Admins',
               '${provider.adminCount}',
               Icons.admin_panel_settings,
@@ -195,15 +203,16 @@ class UsersScreen extends StatelessWidget {
               DataColumn(label: Text("Phone")),
               DataColumn(label: Text("Role")),
               DataColumn(label: Text("Joined")),
+              DataColumn(label: Text("Actions")),
             ],
-            rows: provider.users.map((user) => _buildDataRow(user)).toList(),
+            rows: provider.users.map((user) => _buildDataRow(context, user, provider)).toList(),
           ),
         );
       },
     );
   }
 
-  DataRow _buildDataRow(AppUser user) {
+  DataRow _buildDataRow(BuildContext context, AppUser user, UsersProvider provider) {
     return DataRow(
       cells: [
         DataCell(
@@ -228,22 +237,91 @@ class UsersScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: user.isAdmin
+              color: user.role == 'admin'
                   ? Colors.orange.withOpacity(0.2)
-                  : Colors.blue.withOpacity(0.2),
+                  : user.role == 'supplier'
+                      ? Colors.green.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              user.isAdmin ? 'Admin' : 'Customer',
+              user.role == 'admin' 
+                  ? 'Admin' 
+                  : user.role == 'supplier' 
+                      ? 'Supplier' 
+                      : 'Customer',
               style: TextStyle(
-                color: user.isAdmin ? Colors.orange : Colors.blue,
+                color: user.role == 'admin'
+                    ? Colors.orange
+                    : user.role == 'supplier'
+                        ? Colors.green
+                        : Colors.blue,
                 fontSize: 12,
               ),
             ),
           ),
         ),
         DataCell(Text(_formatDate(user.createdAt))),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.shield, color: Colors.blueAccent),
+                tooltip: 'Change Role',
+                onSelected: (String newRole) {
+                  provider.updateUserRole(user, newRole);
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'user',
+                    child: Text('Set as User'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'supplier',
+                    child: Text('Set as Supplier'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'admin',
+                    child: Text('Set as Admin'),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                tooltip: 'Delete User',
+                onPressed: () {
+                  _showDeleteConfirmDialog(context, user, provider);
+                },
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  void _showDeleteConfirmDialog(BuildContext context, AppUser user, UsersProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: bgColor,
+        title: const Text('Confirm Delete', style: TextStyle(color: Colors.white)),
+        content: Text('Are you sure you want to delete ${user.name}?', style: const TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.deleteUser(user);
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 

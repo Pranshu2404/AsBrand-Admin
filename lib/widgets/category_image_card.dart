@@ -43,11 +43,11 @@ class CategoryImageCard extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 )
-              else if ( imageUrlForUpdateImage != null)
+              else if (imageUrlForUpdateImage != null && imageUrlForUpdateImage != 'no_url')
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    imageUrlForUpdateImage ?? '',
+                    imageUrlForUpdateImage!,
                     width: double.infinity,
                     height: 80,
                     fit: BoxFit.cover,

@@ -143,18 +143,23 @@ DataRow brandDataRow(Brand brandInfo, int index, {Function? edit, Function? dele
       DataCell(
         Row(
           children: [
-            Container(
-              height: 24,
-              width: 24,
-              decoration: BoxDecoration(
-                color: colors[index % colors.length],
-                shape: BoxShape.circle,
-              ),
-              child: Text(index.toString(), textAlign: TextAlign.center),
-            ),
+            (brandInfo.image != null && brandInfo.image != 'no_url')
+              ? Image.network(
+                  brandInfo.image!,
+                  height: 30,
+                  width: 30,
+                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                    return const Icon(Icons.error);
+                  },
+                )
+              : const SizedBox(
+                  height: 30,
+                  width: 30,
+                  child: Icon(Icons.image, color: Colors.grey),
+                ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(brandInfo.name!),
+              child: Text(brandInfo.name ?? ''),
             ),
           ],
         ),

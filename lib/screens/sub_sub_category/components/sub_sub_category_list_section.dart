@@ -58,7 +58,30 @@ class SubSubCategoryListSection extends StatelessWidget {
 DataRow subSubCategoryDataRow(SubSubCategory subSubCategory, BuildContext context) {
   return DataRow(
     cells: [
-      DataCell(Text(subSubCategory.name ?? '')),
+      DataCell(
+        Row(
+          children: [
+            (subSubCategory.image != null && subSubCategory.image != 'no_url')
+              ? Image.network(
+                  subSubCategory.image!,
+                  height: 30,
+                  width: 30,
+                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                    return const Icon(Icons.error);
+                  },
+                )
+              : const SizedBox(
+                  height: 30,
+                  width: 30,
+                  child: Icon(Icons.image, color: Colors.grey),
+                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+              child: Text(subSubCategory.name ?? ''),
+            ),
+          ],
+        ),
+      ),
       DataCell(Text(subSubCategory.subCategoryId?.name ?? '')),
       DataCell(Text(subSubCategory.categoryId?.name ?? '')),
       DataCell(Text(subSubCategory.createdAt?.substring(0, 10) ?? '')),
