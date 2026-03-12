@@ -451,13 +451,29 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                       child: Text('Select variants above to automatically generate SKUs.', style: TextStyle(color: Colors.grey)),
                     )
                   else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: dashProvider.skus.length,
-                      itemBuilder: (context, index) {
-                        final sku = dashProvider.skus[index];
-                        final attributesStr = (sku['attributes'] as Map<String, String>).entries.map((e) => '${e.key}: ${e.value}').join(', ');
+                    Builder(
+                      builder: (context) {
+                        final seenColors = <String>{};
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: dashProvider.skus.length,
+                          itemBuilder: (context, index) {
+                            final sku = dashProvider.skus[index];
+                            final attributes = sku['attributes'] as Map<String, String>;
+                            final attributesStr = attributes.entries.map((e) => '${e.key}: ${e.value}').join(', ');
+                            
+                            // Check if color is already seen
+                            final colorKey = attributes.keys.firstWhere(
+                                (key) => key.toLowerCase().contains('color'),
+                                orElse: () => '');
+                            final hasColor = colorKey.isNotEmpty;
+                            final colorValue = hasColor ? attributes[colorKey]! : '';
+                            final shouldShowImageUpload = !hasColor || !seenColors.contains(colorValue);
+                            
+                            if (hasColor && shouldShowImageUpload) {
+                              seenColors.add(colorValue); // Mark color as seen
+                            }
                         
                         return Card(
                           margin: const EdgeInsets.only(bottom: defaultPadding),
@@ -518,29 +534,39 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                                     ),
                                     const Gap(8),
                                     // Image button
-                                    Expanded(
-                                      flex: 3,
-                                      child: ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: secondaryColor,
-                                          padding: const EdgeInsets.symmetric(vertical: 16),
-                                        ),
-                                        onPressed: sku['isUploading'] ? null : () => dashProvider.pickSkuImage(index),
-                                        icon: sku['isUploading'] 
-                                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                            : const Icon(Icons.image),
-                                        label: Expanded(
-                                          child: Text(
-                                            sku['imageUrl'] != null ? 'Change Image' : 'Upload Image', 
-                                            maxLines: 1, 
-                                            overflow: TextOverflow.ellipsis
+                                    if (shouldShowImageUpload)
+                                      Expanded(
+                                        flex: 3,
+                                        child: ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: secondaryColor,
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                          ),
+                                          onPressed: sku['isUploading'] ? null : () => dashProvider.pickSkuImage(index),
+                                          icon: sku['isUploading'] 
+                                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                              : const Icon(Icons.image),
+                                          label: Expanded(
+                                            child: Text(
+                                              sku['imageUrl'] != null ? 'Change Image' : 'Upload Image', 
+                                              maxLines: 1, 
+                                              overflow: TextOverflow.ellipsis
+                                            ),
                                           ),
                                         ),
+                                      )
+                                    else
+                                      Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          'Image synced with $colorValue',
+                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontStyle: FontStyle.italic),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
-                                if (sku['imageFile'] != null || sku['imageUrl'] != null)
+                                if (shouldShowImageUpload && (sku['imageFile'] != null || sku['imageUrl'] != null))
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8),
                                     child: Row(
@@ -561,6 +587,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                               ],
                             ),
                           ),
+                        );
+                          },
                         );
                       },
                     ),
