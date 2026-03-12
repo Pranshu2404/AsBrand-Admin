@@ -260,7 +260,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
               builder: (context, dashProvider, child) {
                 return CustomDropdown(
                   key: ValueKey(dashProvider.selectedSubSubCategory?.sId),
-                  hintText: dashProvider.selectedSubSubCategory?.name ?? 'Sub Sub category *',
+                  hintText: dashProvider.selectedSubSubCategory?.name ?? 'Sub Sub category (Optional)',
                   items: dashProvider.subSubCategoriesBySubCategory,
                   initialValue: dashProvider.selectedSubSubCategory,
                   displayItem: (SubSubCategory? ssCategory) => ssCategory?.name ?? '',
@@ -269,10 +269,6 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                       dashProvider.selectedSubSubCategory = newValue;
                       dashProvider.updateUI();
                     }
-                  },
-                  validator: (value) {
-                    if (value == null) return 'Please select sub sub category';
-                    return null;
                   },
                 );
               },
