@@ -441,6 +441,12 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                       ),
                     );
                   }),
+                  const Gap(defaultPadding),
+                  ElevatedButton.icon(
+                    onPressed: () => dashProvider.addVariantRow(),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Variant'),
+                  ),
                   const Gap(defaultPadding * 2),
                   _sectionHeader('Generated SKUs'),
                   if (dashProvider.skus.isEmpty)
