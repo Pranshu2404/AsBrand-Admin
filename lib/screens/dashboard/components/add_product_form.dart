@@ -441,7 +441,6 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                       ),
                     );
                   }),
-                  ),
                   const Gap(defaultPadding * 2),
                   _sectionHeader('Generated SKUs'),
                   if (dashProvider.skus.isEmpty)

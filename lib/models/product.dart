@@ -4,6 +4,7 @@ class Product {
   String? name;
   String? description;
   String? sku;
+  List<dynamic>? skus;
   
   // Pricing
   double? price;
@@ -62,6 +63,7 @@ class Product {
     this.name,
     this.description,
     this.sku,
+    this.skus,
     this.price,
     this.offerPrice,
     this.emiEligible,
@@ -103,6 +105,9 @@ class Product {
     name = json['name'];
     description = json['description'];
     sku = json['sku'];
+    if (json['skus'] != null) {
+      skus = json['skus'];
+    }
     price = json['price']?.toDouble();
     offerPrice = json['offerPrice']?.toDouble();
     emiEligible = json['emiEligible'] ?? true;
@@ -185,6 +190,7 @@ class Product {
     data['name'] = name;
     data['description'] = description;
     data['sku'] = sku;
+    data['skus'] = skus;
     data['price'] = price;
     data['offerPrice'] = offerPrice;
     data['emiEligible'] = emiEligible;

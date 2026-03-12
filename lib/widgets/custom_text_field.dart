@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final int? lineNumber;
   final void Function(String?) onSave;
   final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
 
   const CustomTextField({
     Key? key,
@@ -17,6 +18,7 @@ class CustomTextField extends StatelessWidget {
     this.inputType = TextInputType.text,
     this.lineNumber = 1,
     this.validator, required this.controller,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -38,6 +40,7 @@ class CustomTextField extends StatelessWidget {
           onSave(value?.isEmpty ?? true ? null : value);
         },
         validator: validator,
+        onChanged: onChanged,
         inputFormatters: [
           LengthLimitingTextInputFormatter(700),
           if (inputType == TextInputType.number) FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
