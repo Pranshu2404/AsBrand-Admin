@@ -80,6 +80,9 @@ class DashBoardProvider extends ChangeNotifier {
   /// Each entry: { 'variantType': VariantType?, 'availableVariants': List<String>, 'selectedVariants': List<String> }
   List<Map<String, dynamic>> variantRows = [];
 
+  /// Each entry: { 'skuId': String, 'attributes': Map<String, String>, 'stock': int, 'price': double, 'imageUrl': String?, 'imageFile': AppFile?, 'isUploading': bool }
+  List<Map<String, dynamic>> skus = [];
+
   Product? productForUpdate;
   AppFile? selectedMainImage,
       selectedSecondImage,
@@ -168,6 +171,13 @@ class DashBoardProvider extends ChangeNotifier {
               'items': row['selectedVariants'] ?? <String>[],
 
             }).toList()),
+        'skus': jsonEncode(skus.map((sku) => {
+          'skuId': sku['skuId'],
+          'attributes': sku['attributes'],
+          'stock': sku['stock'],
+          'price': sku['price'],
+          'image': sku['imageUrl'],
+        }).toList()),
         'imageUrls': jsonEncode(imageUrlsList),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': jsonEncode({
@@ -276,6 +286,13 @@ class DashBoardProvider extends ChangeNotifier {
               'items': row['selectedVariants'] ?? <String>[],
             })
             .toList()),
+        'skus': jsonEncode(skus.map((sku) => {
+          'skuId': sku['skuId'],
+          'attributes': sku['attributes'],
+          'stock': sku['stock'],
+          'price': sku['price'],
+          'image': sku['imageUrl'],
+        }).toList()),
         'imageUrls': jsonEncode(imageUrlsList),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
         'dimensions': jsonEncode({
@@ -541,6 +558,7 @@ class DashBoardProvider extends ChangeNotifier {
   void removeVariantRow(int index) {
     if (index >= 0 && index < variantRows.length) {
       variantRows.removeAt(index);
+      generateSkus();
       notifyListeners();
     }
   }
@@ -556,6 +574,7 @@ class DashBoardProvider extends ChangeNotifier {
           .toList();
       variantRows[index]['availableVariants'] =
           filtered.map((v) => v.name ?? '').toList();
+      generateSkus();
       notifyListeners();
     }
   }
@@ -564,6 +583,7 @@ class DashBoardProvider extends ChangeNotifier {
   void updateSelectedVariantsForRow(int index, List<String> selected) {
     if (index >= 0 && index < variantRows.length) {
       variantRows[index]['selectedVariants'] = selected;
+      generateSkus();
       notifyListeners();
     }
   }
@@ -576,6 +596,105 @@ class DashBoardProvider extends ChangeNotifier {
         .where((e) => e.key != excludeIndex && e.value['variantType'] != null)
         .map((e) => (e.value['variantType'] as VariantType).sId ?? '')
         .toList();
+  }
+
+  void generateSkus() {
+    // Collect selected variants
+    List<Map<String, dynamic>> validRows = variantRows.where((r) => r['variantType'] != null && (r['selectedVariants'] as List).isNotEmpty).toList();
+    if (validRows.isEmpty) {
+      if (skus.isNotEmpty) {
+        skus = [];
+        notifyListeners();
+      }
+      return;
+    }
+
+    // Helper to generate combinations
+    List<Map<String, String>> combinations = [{}];
+    for (var row in validRows) {
+      String typeName = (row['variantType'] as VariantType).name ?? 'Variant';
+      List<String> items = row['selectedVariants'] as List<String>;
+      
+      List<Map<String, String>> newCombinations = [];
+      for (var combo in combinations) {
+        for (var item in items) {
+          final newCombo = Map<String, String>.from(combo);
+          newCombo[typeName] = item;
+          newCombinations.add(newCombo);
+        }
+      }
+      combinations = newCombinations;
+    }
+
+    // Update SKUs list, preserving existing data if attributes match
+    List<Map<String, dynamic>> newSkus = [];
+    for (var combo in combinations) {
+      // Find if we already have this SKU
+      bool existingFound = false;
+      for (var existingSku in skus) {
+        if (mapEquals(existingSku['attributes'] as Map, combo)) {
+          newSkus.add(existingSku);
+          existingFound = true;
+          break;
+        }
+      }
+      if (!existingFound) {
+        // Generate a SKU ID
+        String combinedValues = combo.values.join('-').toUpperCase().replaceAll(' ', '');
+        String baseSku = productSkuCtrl.text.isNotEmpty ? '${productSkuCtrl.text}-' : 'SKU-';
+        newSkus.add({
+          'skuId': '$baseSku$combinedValues',
+          'attributes': combo,
+          'stock': 0,
+          'price': 0,
+          'imageUrl': null,
+          'imageFile': null,
+          'isUploading': false,
+        });
+      }
+    }
+
+    skus = newSkus;
+    notifyListeners();
+  }
+
+  void pickSkuImage(int index) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      skus[index]['imageFile'] = AppFile(image.path);
+      skus[index]['isUploading'] = true;
+      notifyListeners();
+
+      try {
+        FormData formData;
+        if (kIsWeb) {
+          String fileName = image.name;
+          Uint8List byteImg = await image.readAsBytes();
+          formData = FormData({'image': MultipartFile(byteImg, filename: fileName)});
+        } else {
+          String filePath = image.path;
+          String fileName = filePath.split('/').last;
+          formData = FormData({'image': await MultipartFile(filePath, filename: fileName)});
+        }
+
+        final url = await service.uploadImage(imageData: formData);
+        if (url != null) {
+          skus[index]['imageUrl'] = url;
+          log('SKU Image uploaded: $url');
+        } else {
+          SnackBarHelper.showErrorSnackBar('Failed to upload SKU image. Please try again.');
+          skus[index]['imageFile'] = null;
+        }
+      } catch (e) {
+        print('SKU Image upload error: $e');
+        SnackBarHelper.showErrorSnackBar('Error uploading SKU image: $e');
+        skus[index]['imageFile'] = null;
+      } finally {
+        skus[index]['isUploading'] = false;
+        notifyListeners();
+      }
+    }
   }
 
   setDataForUpdateProduct(Product? product) {
@@ -660,6 +779,20 @@ class DashBoardProvider extends ChangeNotifier {
           'selectedVariants': List<String>.from(product.proVariantId ?? []),
         });
       }
+      
+      // Load SKUs if available
+      skus = [];
+      if (product.skus != null && product.skus!.isNotEmpty) {
+        skus = product.skus!.map((s) => {
+          'skuId': s['skuId'] ?? '',
+          'attributes': Map<String, String>.from(s['attributes'] ?? {}),
+          'stock': s['stock'] ?? 0,
+          'price': s['price'] ?? 0,
+          'imageUrl': s['image'],
+          'imageFile': null,
+          'isUploading': false,
+        }).toList();
+      }
     } else {
       clearFields();
     }
@@ -718,6 +851,7 @@ class DashBoardProvider extends ChangeNotifier {
     selectedSubSubCategory = null;
     selectedBrand = null;
     variantRows = [];
+    skus = [];
 
     productForUpdate = null;
 

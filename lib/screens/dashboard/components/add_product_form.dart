@@ -441,15 +441,128 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                       ),
                     );
                   }),
-                  const Gap(8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () => dashProvider.addVariantRow(),
-                      icon: const Icon(Icons.add, color: primaryColor),
-                      label: const Text('Add Variant Type', style: TextStyle(color: primaryColor)),
-                    ),
                   ),
+                  const Gap(defaultPadding * 2),
+                  _sectionHeader('Generated SKUs'),
+                  if (dashProvider.skus.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('Select variants above to automatically generate SKUs.', style: TextStyle(color: Colors.grey)),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: dashProvider.skus.length,
+                      itemBuilder: (context, index) {
+                        final sku = dashProvider.skus[index];
+                        final attributesStr = (sku['attributes'] as Map<String, String>).entries.map((e) => '${e.key}: ${e.value}').join(', ');
+                        
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: defaultPadding),
+                          color: bgColor,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(color: secondaryColor),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        attributesStr,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
+                                    ),
+                                    Text(
+                                      sku['skuId'],
+                                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                const Gap(12),
+                                Row(
+                                  children: [
+                                    // Stock input
+                                    Expanded(
+                                      flex: 2,
+                                      child: CustomTextField(
+                                        controller: TextEditingController(text: sku['stock'].toString()),
+                                        labelText: 'Stock',
+                                        inputType: TextInputType.number,
+                                        onSave: (val) {},
+                                        onChanged: (val) {
+                                          sku['stock'] = int.tryParse(val) ?? 0;
+                                        },
+                                      ),
+                                    ),
+                                    const Gap(8),
+                                    // Price override input
+                                    Expanded(
+                                      flex: 2,
+                                      child: CustomTextField(
+                                        controller: TextEditingController(text: sku['price'].toString()),
+                                        labelText: 'Price Override (optional)',
+                                        inputType: TextInputType.number,
+                                        onSave: (val) {},
+                                        onChanged: (val) {
+                                          sku['price'] = double.tryParse(val) ?? 0;
+                                        },
+                                      ),
+                                    ),
+                                    const Gap(8),
+                                    // Image button
+                                    Expanded(
+                                      flex: 3,
+                                      child: ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: secondaryColor,
+                                          padding: const EdgeInsets.symmetric(vertical: 16),
+                                        ),
+                                        onPressed: sku['isUploading'] ? null : () => dashProvider.pickSkuImage(index),
+                                        icon: sku['isUploading'] 
+                                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                                            : const Icon(Icons.image),
+                                        label: Expanded(
+                                          child: Text(
+                                            sku['imageUrl'] != null ? 'Change Image' : 'Upload Image', 
+                                            maxLines: 1, 
+                                            overflow: TextOverflow.ellipsis
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (sku['imageFile'] != null || sku['imageUrl'] != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                                        const SizedBox(width: 4),
+                                        Text('Image selected', style: const TextStyle(color: Colors.green, fontSize: 12)),
+                                        if (sku['imageUrl'] != null)
+                                          TextButton(
+                                            onPressed: () {
+                                              // Preview logic could go here
+                                            },
+                                            child: const Text('View', style: TextStyle(fontSize: 12)),
+                                          )
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                 ],
               );
             },
