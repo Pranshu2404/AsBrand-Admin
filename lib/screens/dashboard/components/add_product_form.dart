@@ -30,7 +30,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.dashBoardProvider.setDataForUpdateProduct(widget.product);
     });
@@ -77,17 +77,13 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                     ? const [
                         Tab(icon: Icon(Icons.info_outline, size: 20)),
                         Tab(icon: Icon(Icons.attach_money, size: 20)),
-                        Tab(icon: Icon(Icons.inventory_2_outlined, size: 20)),
                         Tab(icon: Icon(Icons.checkroom, size: 20)),
-                        Tab(icon: Icon(Icons.image_outlined, size: 20)),
                         Tab(icon: Icon(Icons.search, size: 20)),
                       ]
                     : const [
                         Tab(text: 'Basic Info', icon: Icon(Icons.info_outline, size: 18)),
-                        Tab(text: 'Pricing', icon: Icon(Icons.attach_money, size: 18)),
-                        Tab(text: 'Inventory', icon: Icon(Icons.inventory_2_outlined, size: 18)),
+                        Tab(text: 'Pricing & Variants', icon: Icon(Icons.attach_money, size: 18)),
                         Tab(text: 'Clothing', icon: Icon(Icons.checkroom, size: 18)),
-                        Tab(text: 'Media', icon: Icon(Icons.image_outlined, size: 18)),
                         Tab(text: 'SEO', icon: Icon(Icons.search, size: 18)),
                       ],
                 ),
@@ -101,9 +97,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                   children: [
                     _buildBasicInfoTab(context),
                     _buildPricingTab(context),
-                    _buildInventoryTab(context),
                     _buildDetailsTab(context),
-                    _buildMediaTab(context),
                     _buildSeoTab(context),
                   ],
                 ),
@@ -312,17 +306,148 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
               },
             ),
           ]),
+          
+          const Gap(defaultPadding * 2),
+          _sectionHeader('Shipping Information'),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productWeightCtrl,
+              labelText: 'Weight (grams)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+          ]),
+          const Gap(defaultPadding),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productLengthCtrl,
+              labelText: 'Length (cm)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productWidthCtrl,
+              labelText: 'Width (cm)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productHeightCtrl,
+              labelText: 'Height (cm)',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+            ),
+          ]),
         ],
       ),
     );
   }
 
-  // Tab 2: Pricing
+  // Tab 2: Pricing & Variants
   Widget _buildPricingTab(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _sectionHeader('Product Images'),
+          const Text(
+            'Upload up to 5 product images. First image will be the main product image.',
+            style: TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+          const Gap(defaultPadding),
+          Wrap(
+            spacing: defaultPadding,
+            runSpacing: defaultPadding,
+            children: [
+              Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return ProductImageCard(
+                    labelText: 'Main Image *',
+                    imageFile: dashProvider.selectedMainImage,
+                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(0)?.url,
+                    isUploading: dashProvider.imageUploadingState[1] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[1],
+                    onTap: () => dashProvider.pickImage(imageCardNumber: 1),
+                    onRemoveImage: () {
+                      dashProvider.selectedMainImage = null;
+                      dashProvider.uploadedImageUrls.remove(1);
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              ),
+              Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return ProductImageCard(
+                    labelText: 'Image 2',
+                    imageFile: dashProvider.selectedSecondImage,
+                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(1)?.url,
+                    isUploading: dashProvider.imageUploadingState[2] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[2],
+                    onTap: () => dashProvider.pickImage(imageCardNumber: 2),
+                    onRemoveImage: () {
+                      dashProvider.selectedSecondImage = null;
+                      dashProvider.uploadedImageUrls.remove(2);
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              ),
+              Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return ProductImageCard(
+                    labelText: 'Image 3',
+                    imageFile: dashProvider.selectedThirdImage,
+                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(2)?.url,
+                    isUploading: dashProvider.imageUploadingState[3] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[3],
+                    onTap: () => dashProvider.pickImage(imageCardNumber: 3),
+                    onRemoveImage: () {
+                      dashProvider.selectedThirdImage = null;
+                      dashProvider.uploadedImageUrls.remove(3);
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              ),
+              Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return ProductImageCard(
+                    labelText: 'Image 4',
+                    imageFile: dashProvider.selectedFourthImage,
+                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(3)?.url,
+                    isUploading: dashProvider.imageUploadingState[4] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[4],
+                    onTap: () => dashProvider.pickImage(imageCardNumber: 4),
+                    onRemoveImage: () {
+                      dashProvider.selectedFourthImage = null;
+                      dashProvider.uploadedImageUrls.remove(4);
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              ),
+              Consumer<DashBoardProvider>(
+                builder: (context, dashProvider, child) {
+                  return ProductImageCard(
+                    labelText: 'Image 5',
+                    imageFile: dashProvider.selectedFifthImage,
+                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(4)?.url,
+                    isUploading: dashProvider.imageUploadingState[5] ?? false,
+                    uploadedUrl: dashProvider.uploadedImageUrls[5],
+                    onTap: () => dashProvider.pickImage(imageCardNumber: 5),
+                    onRemoveImage: () {
+                      dashProvider.selectedFifthImage = null;
+                      dashProvider.uploadedImageUrls.remove(5);
+                      dashProvider.updateUI();
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+          
+          const Gap(defaultPadding * 2),
           _sectionHeader('Pricing Information'),
           _responsiveFields(context, [
             CustomTextField(
@@ -377,6 +502,26 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
               );
             },
           ),
+          
+          const Gap(defaultPadding * 2),
+          _sectionHeader('Stock Defaults'),
+          _responsiveFields(context, [
+            CustomTextField(
+              controller: context.dashBoardProvider.productSkuCtrl,
+              labelText: 'SKU Prefix (e.g. SHIRT)',
+              onSave: (val) {},
+            ),
+            CustomTextField(
+              controller: context.dashBoardProvider.productQntCtrl,
+              labelText: 'Default Quantity *',
+              inputType: TextInputType.number,
+              onSave: (val) {},
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Please enter quantity';
+                return null;
+              },
+            ),
+          ]),
           
           const Gap(defaultPadding * 2),
           _sectionHeader('Variants'),
@@ -601,115 +746,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
     );
   }
 
-  // Tab 3: Inventory
-  Widget _buildInventoryTab(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionHeader('Stock Management'),
-          _responsiveFields(context, [
-            CustomTextField(
-              controller: context.dashBoardProvider.productSkuCtrl,
-              labelText: 'SKU (Stock Keeping Unit)',
-              onSave: (val) {},
-            ),
-            CustomTextField(
-              controller: context.dashBoardProvider.productQntCtrl,
-              labelText: 'Quantity *',
-              inputType: TextInputType.number,
-              onSave: (val) {},
-              validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter quantity';
-                return null;
-              },
-            ),
-          ]),
-          const Gap(defaultPadding),
-          _responsiveFields(context, [
-            Consumer<DashBoardProvider>(
-              builder: (context, dashProvider, child) {
-                return DropdownButtonFormField<String>(
-                  value: dashProvider.stockStatus,
-                  decoration: const InputDecoration(
-                    labelText: 'Stock Status',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'in_stock', child: Text('In Stock')),
-                    DropdownMenuItem(value: 'out_of_stock', child: Text('Out of Stock')),
-                    DropdownMenuItem(value: 'low_stock', child: Text('Low Stock')),
-                    DropdownMenuItem(value: 'pre_order', child: Text('Pre-Order')),
-                  ],
-                  onChanged: (val) {
-                    dashProvider.stockStatus = val ?? 'in_stock';
-                    dashProvider.updateUI();
-                  },
-                );
-              },
-            ),
-            CustomTextField(
-              controller: context.dashBoardProvider.productLowStockCtrl,
-              labelText: 'Low Stock Alert Threshold',
-              inputType: TextInputType.number,
-              onSave: (val) {},
-            ),
-          ]),
-          
-          const Gap(defaultPadding * 2),
-          _sectionHeader('Shipping Information'),
-          _responsiveFields(context, [
-            CustomTextField(
-              controller: context.dashBoardProvider.productWeightCtrl,
-              labelText: 'Weight (grams)',
-              inputType: TextInputType.number,
-              onSave: (val) {},
-            ),
-          ]),
-          const Gap(defaultPadding),
-          _responsiveFields(context, [
-            CustomTextField(
-              controller: context.dashBoardProvider.productLengthCtrl,
-              labelText: 'Length (cm)',
-              inputType: TextInputType.number,
-              onSave: (val) {},
-            ),
-            CustomTextField(
-              controller: context.dashBoardProvider.productWidthCtrl,
-              labelText: 'Width (cm)',
-              inputType: TextInputType.number,
-              onSave: (val) {},
-            ),
-            CustomTextField(
-              controller: context.dashBoardProvider.productHeightCtrl,
-              labelText: 'Height (cm)',
-              inputType: TextInputType.number,
-              onSave: (val) {},
-            ),
-          ]),
-          
-          const Gap(defaultPadding * 2),
-          _sectionHeader('Product Status'),
-          Consumer<DashBoardProvider>(
-            builder: (context, dashProvider, child) {
-              return SwitchListTile(
-                title: const Text('Active Product'),
-                subtitle: const Text('Product visible to customers'),
-                value: dashProvider.isProductActive,
-                activeColor: Colors.green,
-                onChanged: (val) {
-                  dashProvider.isProductActive = val;
-                  dashProvider.updateUI();
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Tab 4: Clothing Details
+  // Tab 3: Clothing Details
   Widget _buildDetailsTab(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
@@ -933,115 +970,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
     );
   }
 
-  // Tab 5: Media
-  Widget _buildMediaTab(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionHeader('Product Images'),
-          const Text(
-            'Upload up to 5 product images. First image will be the main product image.',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
-          ),
-          const Gap(defaultPadding),
-          Wrap(
-            spacing: defaultPadding,
-            runSpacing: defaultPadding,
-            children: [
-              Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return ProductImageCard(
-                    labelText: 'Main Image *',
-                    imageFile: dashProvider.selectedMainImage,
-                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(0)?.url,
-                    isUploading: dashProvider.imageUploadingState[1] ?? false,
-                    uploadedUrl: dashProvider.uploadedImageUrls[1],
-                    onTap: () => dashProvider.pickImage(imageCardNumber: 1),
-                    onRemoveImage: () {
-                      dashProvider.selectedMainImage = null;
-                      dashProvider.uploadedImageUrls.remove(1);
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              ),
-              Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return ProductImageCard(
-                    labelText: 'Image 2',
-                    imageFile: dashProvider.selectedSecondImage,
-                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(1)?.url,
-                    isUploading: dashProvider.imageUploadingState[2] ?? false,
-                    uploadedUrl: dashProvider.uploadedImageUrls[2],
-                    onTap: () => dashProvider.pickImage(imageCardNumber: 2),
-                    onRemoveImage: () {
-                      dashProvider.selectedSecondImage = null;
-                      dashProvider.uploadedImageUrls.remove(2);
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              ),
-              Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return ProductImageCard(
-                    labelText: 'Image 3',
-                    imageFile: dashProvider.selectedThirdImage,
-                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(2)?.url,
-                    isUploading: dashProvider.imageUploadingState[3] ?? false,
-                    uploadedUrl: dashProvider.uploadedImageUrls[3],
-                    onTap: () => dashProvider.pickImage(imageCardNumber: 3),
-                    onRemoveImage: () {
-                      dashProvider.selectedThirdImage = null;
-                      dashProvider.uploadedImageUrls.remove(3);
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              ),
-              Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return ProductImageCard(
-                    labelText: 'Image 4',
-                    imageFile: dashProvider.selectedFourthImage,
-                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(3)?.url,
-                    isUploading: dashProvider.imageUploadingState[4] ?? false,
-                    uploadedUrl: dashProvider.uploadedImageUrls[4],
-                    onTap: () => dashProvider.pickImage(imageCardNumber: 4),
-                    onRemoveImage: () {
-                      dashProvider.selectedFourthImage = null;
-                      dashProvider.uploadedImageUrls.remove(4);
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              ),
-              Consumer<DashBoardProvider>(
-                builder: (context, dashProvider, child) {
-                  return ProductImageCard(
-                    labelText: 'Image 5',
-                    imageFile: dashProvider.selectedFifthImage,
-                    imageUrlForUpdateImage: widget.product?.images.safeElementAt(4)?.url,
-                    isUploading: dashProvider.imageUploadingState[5] ?? false,
-                    uploadedUrl: dashProvider.uploadedImageUrls[5],
-                    onTap: () => dashProvider.pickImage(imageCardNumber: 5),
-                    onRemoveImage: () {
-                      dashProvider.selectedFifthImage = null;
-                      dashProvider.uploadedImageUrls.remove(5);
-                      dashProvider.updateUI();
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Tab 6: SEO
+  // Tab 4: SEO
   Widget _buildSeoTab(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
