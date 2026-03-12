@@ -349,9 +349,9 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader('Product Images'),
+          _sectionHeader('Product Images (Optional)'),
           const Text(
-            'Upload up to 5 product images. First image will be the main product image.',
+            'Upload product gallery images. Optional if you upload images in the variant section below.',
             style: TextStyle(color: Colors.white54, fontSize: 12),
           ),
           const Gap(defaultPadding),
@@ -677,55 +677,125 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                                         },
                                       ),
                                     ),
-                                    const Gap(8),
-                                    // Image button
-                                    if (shouldShowImageUpload)
-                                      Expanded(
-                                        flex: 3,
-                                        child: ElevatedButton.icon(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: secondaryColor,
-                                            padding: const EdgeInsets.symmetric(vertical: 16),
-                                          ),
-                                          onPressed: sku['isUploading'] ? null : () => dashProvider.pickSkuImage(index),
-                                          icon: sku['isUploading'] 
-                                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                                              : const Icon(Icons.image),
-                                          label: Expanded(
-                                            child: Text(
-                                              sku['imageUrl'] != null ? 'Change Image' : 'Upload Image', 
-                                              maxLines: 1, 
-                                              overflow: TextOverflow.ellipsis
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    else
-                                      Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          'Image synced with $colorValue',
-                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontStyle: FontStyle.italic),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
                                   ],
                                 ),
-                                if (shouldShowImageUpload && (sku['imageFile'] != null || sku['imageUrl'] != null))
+                                const Gap(8),
+                                // Multi-image section per color
+                                if (shouldShowImageUpload) ...[
+                                  Row(
+                                    children: [
+                                      Text(
+                                        hasColor ? 'Images for $colorValue' : 'Images',
+                                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                      ),
+                                      const Spacer(),
+                                      ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: secondaryColor,
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          minimumSize: Size.zero,
+                                        ),
+                                        onPressed: sku['isUploading'] == true
+                                            ? null
+                                            : () => dashProvider.pickSkuImage(index),
+                                        icon: sku['isUploading'] == true
+                                            ? const SizedBox(
+                                                width: 14, height: 14,
+                                                child: CircularProgressIndicator(strokeWidth: 2))
+                                            : const Icon(Icons.add_photo_alternate, size: 16),
+                                        label: const Text('Add Image', style: TextStyle(fontSize: 12)),
+                                      ),
+                                    ],
+                                  ),
+                                  const Gap(8),
+                                  if ((sku['imageUrls'] as List?)?.isNotEmpty == true)
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: List.generate(
+                                        (sku['imageUrls'] as List).length,
+                                        (imgIdx) {
+                                          final imgUrl = (sku['imageUrls'] as List)[imgIdx] as String;
+                                          return Stack(
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (_) => Dialog(
+                                                      child: Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          AppBar(
+                                                            title: Text('Image ${imgIdx + 1}'),
+                                                            backgroundColor: secondaryColor,
+                                                            automaticallyImplyLeading: false,
+                                                            actions: [
+                                                              IconButton(
+                                                                icon: const Icon(Icons.close),
+                                                                onPressed: () => Navigator.pop(context),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          SizedBox(
+                                                            width: 400,
+                                                            height: 400,
+                                                            child: Image.network(imgUrl, fit: BoxFit.contain),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Container(
+                                                  width: 70,
+                                                  height: 70,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(6),
+                                                    border: Border.all(color: Colors.white24),
+                                                    image: DecorationImage(
+                                                      image: NetworkImage(imgUrl),
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                top: -4,
+                                                right: -4,
+                                                child: GestureDetector(
+                                                  onTap: () => dashProvider.removeSkuImage(index, imgIdx),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(2),
+                                                    decoration: const BoxDecoration(
+                                                      color: Colors.red,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    )
+                                  else
+                                    const Text(
+                                      'No images uploaded yet',
+                                      style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+                                    ),
+                                ] else
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 8),
+                                    padding: const EdgeInsets.only(top: 4),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                                        const Icon(Icons.sync, size: 14, color: Colors.grey),
                                         const SizedBox(width: 4),
-                                        Text('Image selected', style: const TextStyle(color: Colors.green, fontSize: 12)),
-                                        if (sku['imageUrl'] != null)
-                                          TextButton(
-                                            onPressed: () {
-                                              // Preview logic could go here
-                                            },
-                                            child: const Text('View', style: TextStyle(fontSize: 12)),
-                                          )
+                                        Text(
+                                          'Images synced with $colorValue',
+                                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontStyle: FontStyle.italic),
+                                        ),
                                       ],
                                     ),
                                   ),

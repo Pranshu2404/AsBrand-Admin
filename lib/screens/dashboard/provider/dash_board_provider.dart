@@ -80,7 +80,7 @@ class DashBoardProvider extends ChangeNotifier {
   /// Each entry: { 'variantType': VariantType?, 'availableVariants': List<String>, 'selectedVariants': List<String> }
   List<Map<String, dynamic>> variantRows = [];
 
-  /// Each entry: { 'skuId': String, 'attributes': Map<String, String>, 'stock': int, 'price': double, 'imageUrl': String?, 'imageFile': AppFile?, 'isUploading': bool }
+  /// Each entry: { 'skuId': String, 'attributes': Map<String, String>, 'stock': int, 'price': double, 'imageUrls': List<String>, 'isUploading': bool }
   List<Map<String, dynamic>> skus = [];
 
   Product? productForUpdate;
@@ -121,10 +121,13 @@ class DashBoardProvider extends ChangeNotifier {
 
     bool isClothingValid = selectedGender != null;
 
-    // Need at least main image (uploaded URL, local file, or existing product image)
-    bool isImageValid = uploadedImageUrls.containsKey(1) ||
+    // Images are valid if either product-level images OR any SKU images exist
+    bool hasProductImages = uploadedImageUrls.containsKey(1) ||
         selectedMainImage != null ||
         productForUpdate != null;
+    bool hasSkuImages = skus.any((sku) => 
+        (sku['imageUrls'] as List?)?.isNotEmpty == true);
+    bool isImageValid = hasProductImages || hasSkuImages;
 
     // Don't allow submit while images are still uploading
     bool isNotUploading = !isAnyImageUploading;
@@ -175,7 +178,7 @@ class DashBoardProvider extends ChangeNotifier {
           'attributes': sku['attributes'],
           'stock': sku['stock'],
           'price': sku['price'],
-          'image': sku['imageUrl'],
+          'images': sku['imageUrls'] ?? [],
         }).toList()),
         'imageUrls': jsonEncode(imageUrlsList),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
@@ -290,7 +293,7 @@ class DashBoardProvider extends ChangeNotifier {
           'attributes': sku['attributes'],
           'stock': sku['stock'],
           'price': sku['price'],
-          'image': sku['imageUrl'],
+          'images': sku['imageUrls'] ?? [],
         }).toList()),
         'imageUrls': jsonEncode(imageUrlsList),
         'weight': productWeightCtrl.text.isEmpty ? 0 : double.tryParse(productWeightCtrl.text) ?? 0,
@@ -646,8 +649,7 @@ class DashBoardProvider extends ChangeNotifier {
           'attributes': combo,
           'stock': 0,
           'price': 0,
-          'imageUrl': null,
-          'imageFile': null,
+          'imageUrls': <String>[],
           'isUploading': false,
         });
       }
@@ -661,7 +663,6 @@ class DashBoardProvider extends ChangeNotifier {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      skus[index]['imageFile'] = AppFile(image.path);
       skus[index]['isUploading'] = true;
       notifyListeners();
 
@@ -678,13 +679,15 @@ class DashBoardProvider extends ChangeNotifier {
         }
 
         print('[pickSkuImage] Uploading SKU image for index $index, filename: ${image.name}');
-
         final url = await service.uploadImage(imageData: formData);
         if (url != null) {
-          skus[index]['imageUrl'] = url;
-          log('SKU Image uploaded: $url');
+          // Append to the images list
+          List<String> currentImages = List<String>.from(skus[index]['imageUrls'] ?? []);
+          currentImages.add(url);
+          skus[index]['imageUrls'] = currentImages;
+          log('SKU Image uploaded: \$url');
 
-          // Auto-apply this image to other SKUs sharing the same Color
+          // Auto-apply this image list to other SKUs sharing the same Color
           final attributes = skus[index]['attributes'] as Map<String, String>;
           final colorKey = attributes.keys.firstWhere(
               (key) => key.toLowerCase().contains('color'),
@@ -696,24 +699,47 @@ class DashBoardProvider extends ChangeNotifier {
               if (i != index) {
                 final otherAttributes = skus[i]['attributes'] as Map<String, String>;
                 if (otherAttributes[colorKey] == colorValue) {
-                  skus[i]['imageUrl'] = url;
-                  // (Optional) We don't copy imageFile to avoid re-uploading the same bytes, just the URL
+                  skus[i]['imageUrls'] = List<String>.from(currentImages);
                 }
               }
             }
           }
         } else {
           SnackBarHelper.showErrorSnackBar('Failed to upload SKU image. Please try again.');
-          skus[index]['imageFile'] = null;
         }
       } catch (e) {
-        print('SKU Image upload error: $e');
-        SnackBarHelper.showErrorSnackBar('Error uploading SKU image: $e');
-        skus[index]['imageFile'] = null;
+        print('SKU Image upload error: \$e');
+        SnackBarHelper.showErrorSnackBar('Error uploading SKU image: \$e');
       } finally {
         skus[index]['isUploading'] = false;
         notifyListeners();
       }
+    }
+  }
+
+  void removeSkuImage(int skuIndex, int imageIndex) {
+    List<String> currentImages = List<String>.from(skus[skuIndex]['imageUrls'] ?? []);
+    if (imageIndex >= 0 && imageIndex < currentImages.length) {
+      currentImages.removeAt(imageIndex);
+      skus[skuIndex]['imageUrls'] = currentImages;
+
+      // Sync removal across same-color SKUs
+      final attributes = skus[skuIndex]['attributes'] as Map<String, String>;
+      final colorKey = attributes.keys.firstWhere(
+          (key) => key.toLowerCase().contains('color'),
+          orElse: () => '');
+      if (colorKey.isNotEmpty) {
+        final colorValue = attributes[colorKey];
+        for (var i = 0; i < skus.length; i++) {
+          if (i != skuIndex) {
+            final otherAttributes = skus[i]['attributes'] as Map<String, String>;
+            if (otherAttributes[colorKey] == colorValue) {
+              skus[i]['imageUrls'] = List<String>.from(currentImages);
+            }
+          }
+        }
+      }
+      notifyListeners();
     }
   }
 
@@ -808,8 +834,7 @@ class DashBoardProvider extends ChangeNotifier {
           'attributes': Map<String, String>.from(s['attributes'] ?? {}),
           'stock': s['stock'] ?? 0,
           'price': s['price'] ?? 0,
-          'imageUrl': s['image'],
-          'imageFile': null,
+          'imageUrls': List<String>.from(s['images'] ?? s['image'] != null ? [s['image']] : []),
           'isUploading': false,
         }).toList();
       }
