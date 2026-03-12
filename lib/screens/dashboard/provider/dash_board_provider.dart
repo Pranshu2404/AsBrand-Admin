@@ -138,8 +138,12 @@ class DashBoardProvider extends ChangeNotifier {
   //TODO: should complete addProduct
   addProduct() async {
     try {
-      if (uploadedImageUrls.isEmpty && selectedMainImage == null) {
-        SnackBarHelper.showErrorSnackBar('Please Choose An Image!');
+      // Allow product to proceed if either product-level OR SKU variant images exist
+      bool hasProductImages = uploadedImageUrls.isNotEmpty || selectedMainImage != null;
+      bool hasSkuImages = skus.any((sku) => 
+          (sku['imageUrls'] as List?)?.isNotEmpty == true);
+      if (!hasProductImages && !hasSkuImages) {
+        SnackBarHelper.showErrorSnackBar('Please upload product images or variant images!');
         return;
       }
 
