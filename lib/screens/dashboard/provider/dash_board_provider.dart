@@ -117,7 +117,6 @@ class DashBoardProvider extends ChangeNotifier {
         productQntCtrl.text.isNotEmpty &&
         selectedCategory != null &&
         selectedSubCategory != null &&
-        selectedSubSubCategory != null &&
         selectedBrand != null;
 
     bool isClothingValid = selectedGender != null;
@@ -682,6 +681,25 @@ class DashBoardProvider extends ChangeNotifier {
         if (url != null) {
           skus[index]['imageUrl'] = url;
           log('SKU Image uploaded: $url');
+
+          // Auto-apply this image to other SKUs sharing the same Color
+          final attributes = skus[index]['attributes'] as Map<String, String>;
+          final colorKey = attributes.keys.firstWhere(
+              (key) => key.toLowerCase().contains('color'),
+              orElse: () => '');
+
+          if (colorKey.isNotEmpty) {
+            final colorValue = attributes[colorKey];
+            for (var i = 0; i < skus.length; i++) {
+              if (i != index) {
+                final otherAttributes = skus[i]['attributes'] as Map<String, String>;
+                if (otherAttributes[colorKey] == colorValue) {
+                  skus[i]['imageUrl'] = url;
+                  // (Optional) We don't copy imageFile to avoid re-uploading the same bytes, just the URL
+                }
+              }
+            }
+          }
         } else {
           SnackBarHelper.showErrorSnackBar('Failed to upload SKU image. Please try again.');
           skus[index]['imageFile'] = null;
