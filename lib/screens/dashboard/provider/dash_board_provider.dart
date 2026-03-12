@@ -670,12 +670,14 @@ class DashBoardProvider extends ChangeNotifier {
         if (kIsWeb) {
           String fileName = image.name;
           Uint8List byteImg = await image.readAsBytes();
-          formData = FormData({'image': MultipartFile(byteImg, filename: fileName)});
+          formData = FormData({'image': MultipartFile(byteImg, filename: fileName, contentType: 'image/jpeg')});
         } else {
           String filePath = image.path;
           String fileName = filePath.split('/').last;
           formData = FormData({'image': await MultipartFile(filePath, filename: fileName)});
         }
+
+        print('[pickSkuImage] Uploading SKU image for index $index, filename: ${image.name}');
 
         final url = await service.uploadImage(imageData: formData);
         if (url != null) {

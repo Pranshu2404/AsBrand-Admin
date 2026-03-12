@@ -64,18 +64,21 @@ class HttpService extends GetConnect {
   /// Upload a single image to Cloudinary via the backend
   Future<String?> uploadImage({required dynamic imageData, String endpoint = 'products/upload-image'}) async {
     try {
+      print('[uploadImage] POST $baseUrl/$endpoint');
       final response = await GetConnect(timeout: const Duration(seconds: 120))
           .post('$baseUrl/$endpoint', imageData);
+      print('[uploadImage] Response status: ${response.statusCode}, isOk: ${response.isOk}');
+      print('[uploadImage] Response body: ${response.body}');
       if (response.isOk && response.body != null) {
         final body = response.body;
         if (body['success'] == true && body['data'] != null) {
           return body['data']['url'] as String?;
         }
       }
-      print('Upload failed: ${response.body}');
+      print('[uploadImage] Upload failed: status=${response.statusCode} body=${response.body}');
       return null;
     } catch (e) {
-      print('Upload error: $e');
+      print('[uploadImage] Upload error: $e');
       return null;
     }
   }
