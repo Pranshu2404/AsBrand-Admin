@@ -12,6 +12,9 @@ class SupplierInfo {
   final String? phone;
   final String? storeName;
   final String? gstin;
+  final bool gstVerified;
+  final String? udyamRegistration;
+  final bool udyamVerified;
   final bool isApproved;
   final String? createdAt;
   final String? city;
@@ -24,6 +27,9 @@ class SupplierInfo {
     this.phone,
     this.storeName,
     this.gstin,
+    this.gstVerified = false,
+    this.udyamRegistration,
+    this.udyamVerified = false,
     this.isApproved = false,
     this.createdAt,
     this.city,
@@ -40,6 +46,9 @@ class SupplierInfo {
       phone: json['phone'],
       storeName: profile['storeName'],
       gstin: profile['gstin'],
+      gstVerified: profile['gstVerified'] ?? false,
+      udyamRegistration: profile['udyamRegistration'],
+      udyamVerified: profile['udyamVerified'] ?? false,
       isApproved: profile['isApproved'] ?? false,
       createdAt: json['createdAt'],
       city: pickup['city'],

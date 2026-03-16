@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 import '../../utility/constants.dart';
 import 'provider/supplier_provider.dart';
 
@@ -159,6 +160,10 @@ class _SuppliersTab extends StatelessWidget {
                           DataCell(Text([s.city, s.state].where((e) => e != null && e.isNotEmpty).join(', '))),
                           DataCell(_statusBadge(isPending ? 'Pending' : 'Approved', isPending ? Colors.orange : Colors.green)),
                           DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                            _actionBtn('View Docs', Colors.blue, () {
+                              _showSupplierDetailsDialog(context, s);
+                            }),
+                            const Gap(8),
                             if (isPending) ...[
                               _actionBtn('Approve', Colors.green, () {
                                 _showConfirmDialog(context, 'Approve Supplier', 'Approve ${s.storeName}?', () => provider.approveSupplier(s.id));
@@ -378,6 +383,75 @@ void _showConfirmDialog(BuildContext context, String title, String content, Void
             onConfirm();
           },
           child: const Text('Confirm', style: TextStyle(color: Colors.red)),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showSupplierDetailsDialog(BuildContext context, SupplierInfo s) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: bgColor,
+      title: const Text('Supplier Verification Details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _detailRow('Store Name', s.storeName ?? 'N/A'),
+            _detailRow('Owner Name', s.name ?? 'N/A'),
+            _detailRow('Email', s.email ?? 'N/A'),
+            _detailRow('Phone', s.phone ?? 'N/A'),
+            _detailRow('Location', [s.city, s.state].where((e) => e != null && e.isNotEmpty).join(', ')),
+            const Divider(color: Colors.white24, height: 30),
+            const Text('Business Registration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 12),
+            if (s.gstin != null && s.gstin!.isNotEmpty) ...[
+              _detailRow('GSTIN', s.gstin!),
+              Row(
+                children: [
+                  const Text('GST Status: ', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  _statusBadge(s.gstVerified ? 'Verified ✓' : 'Unverified', s.gstVerified ? Colors.green : Colors.orange),
+                ],
+              ),
+            ] else if (s.udyamRegistration != null && s.udyamRegistration!.isNotEmpty) ...[
+              _detailRow('Udyam No.', s.udyamRegistration!),
+              Row(
+                children: [
+                  const Text('Udyam Status: ', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  _statusBadge(s.udyamVerified ? 'Verified ✓' : 'Unverified', s.udyamVerified ? Colors.green : Colors.orange),
+                ],
+              ),
+            ] else ...[
+              const Text('No GSTIN or Udyam provided.', style: TextStyle(color: Colors.redAccent)),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('Close', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _detailRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 8.0),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text('$label:', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        ),
+        Expanded(
+          child: Text(value.isEmpty ? 'N/A' : value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
         ),
       ],
     ),
