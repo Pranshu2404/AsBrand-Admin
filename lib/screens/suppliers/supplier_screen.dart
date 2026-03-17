@@ -404,7 +404,19 @@ void _showSupplierDetailsDialog(BuildContext context, SupplierInfo s) {
             _detailRow('Owner Name', s.name ?? 'N/A'),
             _detailRow('Email', s.email ?? 'N/A'),
             _detailRow('Phone', s.phone ?? 'N/A'),
-            _detailRow('Location', [s.city, s.state].where((e) => e != null && e.isNotEmpty).join(', ')),
+
+            const Divider(color: Colors.white24, height: 30),
+            const Text('Pickup Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 12),
+            if (s.fullAddress != null && s.fullAddress!.isNotEmpty)
+              _detailRow('Address', s.fullAddress!),
+            if (s.city != null && s.city!.isNotEmpty)
+              _detailRow('City', s.city!),
+            if (s.state != null && s.state!.isNotEmpty)
+              _detailRow('State', s.state!),
+            if (s.pincode != null && s.pincode!.isNotEmpty)
+              _detailRow('Pincode', s.pincode!),
+
             const Divider(color: Colors.white24, height: 30),
             const Text('Business Registration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 12),
@@ -428,6 +440,22 @@ void _showSupplierDetailsDialog(BuildContext context, SupplierInfo s) {
               const Text('No GSTIN or Udyam provided.', style: TextStyle(color: Colors.redAccent)),
             ],
 
+            if (s.bankDetails != null && s.bankDetails!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Divider(color: Colors.white24, height: 1),
+              const SizedBox(height: 12),
+              const Text('Bank Details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              if ((s.bankDetails!['accountName'] ?? '').toString().isNotEmpty)
+                _detailRow('Beneficiary', s.bankDetails!['accountName'].toString()),
+              if ((s.bankDetails!['accountNumber'] ?? '').toString().isNotEmpty)
+                _detailRow('Account No.', s.bankDetails!['accountNumber'].toString()),
+              if ((s.bankDetails!['bankName'] ?? '').toString().isNotEmpty)
+                _detailRow('Bank Name', s.bankDetails!['bankName'].toString()),
+              if ((s.bankDetails!['ifscCode'] ?? '').toString().isNotEmpty)
+                _detailRow('IFSC Code', s.bankDetails!['ifscCode'].toString()),
+            ],
+
             if (s.verificationData != null && s.verificationData!.isNotEmpty) ...[
               const SizedBox(height: 20),
               const Divider(color: Colors.white24, height: 1),
@@ -446,12 +474,9 @@ void _showSupplierDetailsDialog(BuildContext context, SupplierInfo s) {
                   children: s.verificationData!.entries.map((entry) {
                     final key = entry.key.replaceAll('_', ' ').toUpperCase();
                     final value = entry.value?.toString() ?? 'N/A';
-                    
-                    // Don't render huge nested objects or arrays to keep UI clean
                     if (entry.value is Map || entry.value is List) {
                        return const SizedBox.shrink();
                     }
-
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: Row(

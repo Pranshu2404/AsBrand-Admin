@@ -19,7 +19,10 @@ class SupplierInfo {
   final String? createdAt;
   final String? city;
   final String? state;
-  final Map<String, dynamic>? verificationData; // Raw RapidAPI profile data
+  final String? fullAddress;
+  final String? pincode;
+  final Map<String, dynamic>? verificationData;
+  final Map<String, dynamic>? bankDetails;
 
   SupplierInfo({
     required this.id,
@@ -35,12 +38,16 @@ class SupplierInfo {
     this.createdAt,
     this.city,
     this.state,
+    this.fullAddress,
+    this.pincode,
     this.verificationData,
+    this.bankDetails,
   });
 
   factory SupplierInfo.fromJson(Map<String, dynamic> json) {
     final profile = json['supplierProfile'] as Map<String, dynamic>? ?? {};
     final pickup = profile['pickupAddress'] as Map<String, dynamic>? ?? {};
+    final bank = profile['bankDetails'] as Map<String, dynamic>?;
     return SupplierInfo(
       id: json['_id'] ?? '',
       name: json['name'],
@@ -55,7 +62,9 @@ class SupplierInfo {
       createdAt: json['createdAt'],
       city: pickup['city'],
       state: pickup['state'],
-      // Parse verificationData if it exists
+      fullAddress: pickup['address'],
+      pincode: pickup['pincode'],
+      bankDetails: bank,
       verificationData: profile['verificationData'] != null && profile['verificationData'].toString().isNotEmpty
           ? (profile['verificationData'] is Map
               ? profile['verificationData'] as Map<String, dynamic>
