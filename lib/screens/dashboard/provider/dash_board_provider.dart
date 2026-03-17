@@ -332,10 +332,10 @@ class DashBoardProvider extends ChangeNotifier {
 
       if (productForUpdate != null) {
         print('[Product] Sending update API request...');
-        final response = await service.updateItem(
-            endpointUrl: 'products',
-            itemData: form,
-            itemId: '${productForUpdate?.sId}');
+        // Use POST instead of PUT because GetConnect on Flutter Web drops FormData in PUT requests
+        final response = await service.addItem(
+            endpointUrl: 'products/${productForUpdate?.sId}',
+            itemData: form);
         print('[Product] Update API response: status=${response.statusCode} isOk=${response.isOk}');
 
         if (response.isOk) {
