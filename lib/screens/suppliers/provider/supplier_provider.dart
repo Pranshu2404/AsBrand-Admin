@@ -19,6 +19,7 @@ class SupplierInfo {
   final String? createdAt;
   final String? city;
   final String? state;
+  final Map<String, dynamic>? verificationData; // Raw RapidAPI profile data
 
   SupplierInfo({
     required this.id,
@@ -34,6 +35,7 @@ class SupplierInfo {
     this.createdAt,
     this.city,
     this.state,
+    this.verificationData,
   });
 
   factory SupplierInfo.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,12 @@ class SupplierInfo {
       createdAt: json['createdAt'],
       city: pickup['city'],
       state: pickup['state'],
+      // Parse verificationData if it exists
+      verificationData: profile['verificationData'] != null && profile['verificationData'].toString().isNotEmpty
+          ? (profile['verificationData'] is Map
+              ? profile['verificationData'] as Map<String, dynamic>
+              : null)
+          : null,
     );
   }
 }

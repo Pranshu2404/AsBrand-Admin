@@ -427,6 +427,51 @@ void _showSupplierDetailsDialog(BuildContext context, SupplierInfo s) {
             ] else ...[
               const Text('No GSTIN or Udyam provided.', style: TextStyle(color: Colors.redAccent)),
             ],
+
+            if (s.verificationData != null && s.verificationData!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Divider(color: Colors.white24, height: 1),
+              const SizedBox(height: 12),
+              const Text('Verification Source Details (RapidAPI)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black12,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: s.verificationData!.entries.map((entry) {
+                    final key = entry.key.replaceAll('_', ' ').toUpperCase();
+                    final value = entry.value?.toString() ?? 'N/A';
+                    
+                    // Don't render huge nested objects or arrays to keep UI clean
+                    if (entry.value is Map || entry.value is List) {
+                       return const SizedBox.shrink();
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text('$key:', style: const TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           ],
         ),
       ),

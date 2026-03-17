@@ -817,17 +817,35 @@ class DashBoardProvider extends ChangeNotifier {
 
       // Populate variant rows from existing product data
       variantRows = [];
-      final existingVariantType = _dataProvider.variantTypes.firstWhereOrNull(
-          (element) => element.sId == product.proVariantTypeId?.sId);
-      if (existingVariantType != null) {
-        final filteredVariants = _dataProvider.variants
-            .where((v) => v.variantTypeId?.sId == existingVariantType.sId)
-            .toList();
-        variantRows.add({
-          'variantType': existingVariantType,
-          'availableVariants': filteredVariants.map((v) => v.name ?? '').toList(),
-          'selectedVariants': List<String>.from(product.proVariantId ?? []),
-        });
+      if (product.proVariants != null && product.proVariants!.isNotEmpty) {
+        for (var variant in product.proVariants!) {
+          final existingVariantType = _dataProvider.variantTypes.firstWhereOrNull(
+              (element) => element.sId == variant.variantTypeId);
+          if (existingVariantType != null) {
+            final filteredVariants = _dataProvider.variants
+                .where((v) => v.variantTypeId?.sId == existingVariantType.sId)
+                .toList();
+            variantRows.add({
+              'variantType': existingVariantType,
+              'availableVariants': filteredVariants.map((v) => v.name ?? '').toList(),
+              'selectedVariants': List<String>.from(variant.items ?? []),
+            });
+          }
+        }
+      } else {
+        // Fallback for old products (using proVariantTypeId and proVariantId)
+        final existingVariantType = _dataProvider.variantTypes.firstWhereOrNull(
+            (element) => element.sId == product.proVariantTypeId?.sId);
+        if (existingVariantType != null) {
+          final filteredVariants = _dataProvider.variants
+              .where((v) => v.variantTypeId?.sId == existingVariantType.sId)
+              .toList();
+          variantRows.add({
+            'variantType': existingVariantType,
+            'availableVariants': filteredVariants.map((v) => v.name ?? '').toList(),
+            'selectedVariants': List<String>.from(product.proVariantId ?? []),
+          });
+        }
       }
       
       // Load SKUs if available

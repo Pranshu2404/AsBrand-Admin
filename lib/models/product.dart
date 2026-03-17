@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Enhanced Product model for admin panel
 class Product {
   String? sId;
@@ -27,6 +29,7 @@ class Product {
   ProRef? proBrandId;
   ProTypeRef? proVariantTypeId;
   List<String>? proVariantId;
+  List<ProVariant>? proVariants;
   
   // Details
   List<String>? tags;
@@ -78,6 +81,7 @@ class Product {
     this.proBrandId,
     this.proVariantTypeId,
     this.proVariantId,
+    this.proVariants,
     this.tags,
     this.specifications,
     this.warranty,
@@ -151,6 +155,9 @@ class Product {
         return e.toString();
       }).toList();
     }
+    if (json['proVariants'] != null) {
+      proVariants = (json['proVariants'] as List).map((e) => ProVariant.fromJson(e)).toList();
+    }
     if (json['tags'] != null) {
       tags = List<String>.from(json['tags']);
     }
@@ -205,6 +212,9 @@ class Product {
     if (proBrandId != null) data['proBrandId'] = proBrandId!.toJson();
     if (proVariantTypeId != null) data['proVariantTypeId'] = proVariantTypeId!.toJson();
     data['proVariantId'] = proVariantId;
+    if (proVariants != null) {
+      data['proVariants'] = proVariants!.map((v) => v.toJson()).toList();
+    }
     data['tags'] = tags;
     if (specifications != null) {
       data['specifications'] = specifications!.map((e) => e.toJson()).toList();
@@ -337,5 +347,42 @@ class Images {
 
   Map<String, dynamic> toJson() {
     return {'image': image, 'url': url, '_id': sId};
+  }
+}
+
+class ProVariant {
+  String? variantTypeId;
+  String? variantTypeName;
+  List<String>? items;
+
+  ProVariant({this.variantTypeId, this.variantTypeName, this.items});
+
+  ProVariant.fromJson(Map<String, dynamic> json) {
+    if (json['variantTypeId'] != null) {
+      variantTypeId = json['variantTypeId'] is Map 
+          ? json['variantTypeId']['_id']?.toString() 
+          : json['variantTypeId'].toString();
+    }
+    variantTypeName = json['variantTypeName'];
+    if (json['items'] != null) {
+      if (json['items'] is List) {
+        items = (json['items'] as List).map((e) => e.toString()).toList();
+      } else if (json['items'] is String) {
+        try {
+          // If items came back as single string array like '["M", "L"]'
+          items = List<String>.from(jsonDecode(json['items']));
+        } catch (e) {
+          items = [json['items'].toString()];
+        }
+      }
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['variantTypeId'] = variantTypeId;
+    data['variantTypeName'] = variantTypeName;
+    data['items'] = items;
+    return data;
   }
 }
