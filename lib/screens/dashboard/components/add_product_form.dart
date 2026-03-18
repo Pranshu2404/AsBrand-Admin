@@ -654,7 +654,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                                     Expanded(
                                       flex: 2,
                                       child: CustomTextField(
-                                        controller: TextEditingController(text: sku['stock'].toString()),
+                                        controller: sku['stockCtrl'],
                                         labelText: 'Stock',
                                         inputType: TextInputType.number,
                                         onSave: (val) {},
@@ -668,7 +668,7 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> with SingleTicker
                                     Expanded(
                                       flex: 2,
                                       child: CustomTextField(
-                                        controller: TextEditingController(text: sku['price'].toString()),
+                                        controller: sku['priceCtrl'],
                                         labelText: 'Price Override (optional)',
                                         inputType: TextInputType.number,
                                         onSave: (val) {},

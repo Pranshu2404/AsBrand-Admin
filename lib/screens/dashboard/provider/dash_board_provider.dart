@@ -653,6 +653,8 @@ class DashBoardProvider extends ChangeNotifier {
           'attributes': combo,
           'stock': 0,
           'price': 0,
+          'stockCtrl': TextEditingController(text: '0'),
+          'priceCtrl': TextEditingController(text: '0'),
           'imageUrls': <String>[],
           'isUploading': false,
         });
@@ -849,15 +851,25 @@ class DashBoardProvider extends ChangeNotifier {
       }
       
       // Load SKUs if available
+      for (final skuMap in skus) {
+        if (skuMap['stockCtrl'] != null) (skuMap['stockCtrl'] as TextEditingController).dispose();
+        if (skuMap['priceCtrl'] != null) (skuMap['priceCtrl'] as TextEditingController).dispose();
+      }
       skus = [];
       if (product.skus != null && product.skus!.isNotEmpty) {
-        skus = product.skus!.map((s) => {
-          'skuId': s['skuId'] ?? '',
-          'attributes': Map<String, String>.from(s['attributes'] ?? {}),
-          'stock': s['stock'] ?? 0,
-          'price': s['price'] ?? 0,
-          'imageUrls': List<String>.from(s['images'] ?? s['image'] != null ? [s['image']] : []),
-          'isUploading': false,
+        skus = product.skus!.map((s) {
+          final sStock = s['stock'] ?? 0;
+          final sPrice = s['price'] ?? 0;
+          return {
+            'skuId': s['skuId'] ?? '',
+            'attributes': Map<String, String>.from(s['attributes'] ?? {}),
+            'stock': sStock,
+            'price': sPrice,
+            'stockCtrl': TextEditingController(text: sStock.toString()),
+            'priceCtrl': TextEditingController(text: sPrice > 0 ? sPrice.toStringAsFixed(0) : '0'),
+            'imageUrls': List<String>.from(s['images'] ?? (s['image'] != null ? [s['image']] : [])),
+            'isUploading': false,
+          };
         }).toList();
       }
     } else {
@@ -890,6 +902,13 @@ class DashBoardProvider extends ChangeNotifier {
     isProductActive = true;
     stockStatus = 'in_stock';
     productSpecs = [];
+
+    // Clear and dispose SKU controllers
+    for (var sku in skus) {
+      if (sku['stockCtrl'] != null) (sku['stockCtrl'] as TextEditingController).dispose();
+      if (sku['priceCtrl'] != null) (sku['priceCtrl'] as TextEditingController).dispose();
+    }
+    skus = [];
 
     // Clear clothing fields
     productMaterialCtrl.clear();
