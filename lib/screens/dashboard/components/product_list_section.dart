@@ -143,15 +143,28 @@ class _ProductListSectionState extends State<ProductListSection> {
 }
 
 DataRow productDataRow(Product productInfo,{Function? edit, Function? delete}) {
+  String imageUrl = '';
+  if (productInfo.images != null && productInfo.images!.isNotEmpty) {
+    imageUrl = productInfo.images!.first.url ?? '';
+  } else if (productInfo.skus != null && productInfo.skus!.isNotEmpty) {
+    for (var sku in productInfo.skus!) {
+      if (sku['images'] != null && (sku['images'] as List).isNotEmpty) {
+        imageUrl = (sku['images'] as List).first.toString();
+        break;
+      } else if (sku['image'] != null && sku['image'].toString().isNotEmpty) {
+        imageUrl = sku['image'].toString();
+        break;
+      }
+    }
+  }
+
   return DataRow(
     cells: [
       DataCell(
         Row(
           children: [
             Image.network(
-              (productInfo.images != null && productInfo.images!.isNotEmpty)
-                  ? productInfo.images!.first.url ?? ''
-                  : '',
+              imageUrl,
               height: 30,
               width: 30,
               errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {

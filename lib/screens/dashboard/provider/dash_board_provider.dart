@@ -385,7 +385,7 @@ class DashBoardProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Product Deleted Successfully');
           print('[Product] Deleted successfully');
-          _dataProvider.getAllProduct(); // refresh in background
+          await _dataProvider.getAllProduct(); // Wait for list to refresh before closing spinning loader
         }
       } else {
         print('[Product] Delete API error: ${response.statusCode} ${response.statusText}');
