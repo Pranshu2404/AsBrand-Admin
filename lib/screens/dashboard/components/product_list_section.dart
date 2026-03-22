@@ -148,12 +148,18 @@ DataRow productDataRow(Product productInfo,{Function? edit, Function? delete}) {
     imageUrl = productInfo.images!.first.url ?? '';
   } else if (productInfo.skus != null && productInfo.skus!.isNotEmpty) {
     for (var sku in productInfo.skus!) {
-      if (sku['images'] != null && (sku['images'] as List).isNotEmpty) {
-        imageUrl = (sku['images'] as List).first.toString();
-        break;
-      } else if (sku['image'] != null && sku['image'].toString().isNotEmpty) {
-        imageUrl = sku['image'].toString();
-        break;
+      if (sku is Map) {
+        final skuImages = sku['images'];
+        if (skuImages != null && skuImages is List && skuImages.isNotEmpty) {
+          final firstImg = skuImages.first;
+          if (firstImg is String && firstImg.isNotEmpty) {
+            imageUrl = firstImg;
+            break;
+          } else if (firstImg is Map && firstImg['url'] != null) {
+            imageUrl = firstImg['url'].toString();
+            break;
+          }
+        }
       }
     }
   }
@@ -163,14 +169,26 @@ DataRow productDataRow(Product productInfo,{Function? edit, Function? delete}) {
       DataCell(
         Row(
           children: [
-            Image.network(
-              imageUrl,
-              height: 30,
-              width: 30,
-              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                return Icon(Icons.error);
-              },
-            ),
+            imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    height: 30,
+                    width: 30,
+                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                      return Container(
+                        height: 30,
+                        width: 30,
+                        color: Colors.grey[700],
+                        child: Icon(Icons.image_not_supported, size: 18, color: Colors.grey[400]),
+                      );
+                    },
+                  )
+                : Container(
+                    height: 30,
+                    width: 30,
+                    color: Colors.grey[700],
+                    child: Icon(Icons.image_not_supported, size: 18, color: Colors.grey[400]),
+                  ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
               child: Text(productInfo.name ?? ''),
@@ -189,14 +207,41 @@ DataRow productDataRow(Product productInfo,{Function? edit, Function? delete}) {
             Icons.edit,
             color: Colors.white,
           ))),
-      DataCell(IconButton(
-          onPressed: () {
-            if (delete != null) delete();
-          },
-          icon: Icon(
-            Icons.delete,
-            color: Colors.red,
-          ))),
+      DataCell(Builder(builder: (context) {
+        return IconButton(
+            onPressed: () async {
+              // Show confirmation dialog before deleting
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  backgroundColor: const Color(0xFF1E2030),
+                  title: const Text('Delete Product', style: TextStyle(color: Colors.white)),
+                  content: Text(
+                    'Do you want to delete "${productInfo.name ?? 'this product'}"? This action cannot be undone.',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed == true && delete != null) {
+                delete();
+              }
+            },
+            icon: const Icon(
+              Icons.delete,
+              color: Colors.red,
+            ));
+      })),
     ],
   );
 }

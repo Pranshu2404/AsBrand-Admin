@@ -378,14 +378,21 @@ class DashBoardProvider extends ChangeNotifier {
   //TODO: should complete deleteProduct
   deleteProduct(Product product) async {
     try {
-      Response response = await service.deleteItem(
-          endpointUrl: 'products', itemId: product.sId ?? '');
+      // Use POST to /:id/delete because Flutter Web drops HTTP DELETE requests through the proxy
+      // (same issue as PUT requests — fixed by switching to POST)
+      Response response = await service.addItem(
+          endpointUrl: 'products/${product.sId}/delete',
+          itemData: FormData({}));
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar('Product Deleted Successfully');
           print('[Product] Deleted successfully');
-          await _dataProvider.getAllProduct(); // Wait for list to refresh before closing spinning loader
+          await _dataProvider.getAllProduct(); // Wait for list to refresh
+        } else {
+          print('[Product] Delete failed: ${apiResponse.message}');
+          SnackBarHelper.showErrorSnackBar(
+              'Failed to delete product: ${apiResponse.message}');
         }
       } else {
         print('[Product] Delete API error: ${response.statusCode} ${response.statusText}');
