@@ -277,6 +277,10 @@ class _ProductsTab extends StatelessWidget {
                           DataCell(Text(p.supplierStoreName ?? 'N/A', style: const TextStyle(fontSize: 12))),
                           DataCell(_statusBadge(isPending ? 'Pending' : 'Approved', isPending ? Colors.orange : Colors.green)),
                           DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                            _actionBtn('View', Colors.blue, () {
+                              _showProductDetailDialog(context, p, provider);
+                            }),
+                            const Gap(8),
                             if (isPending) ...[
                               _actionBtn('Approve', Colors.green, () {
                                 _showConfirmDialog(context, 'Approve Product', 'Approve ${p.name}?', () => provider.approveProduct(p.id));
@@ -506,6 +510,437 @@ void _showSupplierDetailsDialog(BuildContext context, SupplierInfo s) {
           child: const Text('Close', style: TextStyle(color: Colors.white)),
         ),
       ],
+    ),
+  );
+}
+
+void _showProductDetailDialog(BuildContext context, ProductInfo p, SupplierAdminProvider provider) {
+  final isPending = !p.isApproved;
+  showDialog(
+    context: context,
+    builder: (ctx) => Dialog(
+      backgroundColor: bgColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 700, maxHeight: 700),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                color: secondaryColor,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      p.name,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Gap(12),
+                  _statusBadge(isPending ? 'Pending' : 'Approved', isPending ? Colors.orange : Colors.green),
+                  const Gap(8),
+                  IconButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                  ),
+                ],
+              ),
+            ),
+
+            // Body
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Image Gallery ──
+                    if (p.allImageUrls.isNotEmpty) ...[
+                      const Text('Product Images', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 180,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: p.allImageUrls.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 10),
+                          itemBuilder: (_, i) {
+                            return GestureDetector(
+                              onTap: () => _showFullImage(context, p.allImageUrls[i]),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  p.allImageUrls[i],
+                                  width: 160,
+                                  height: 180,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (c, e, s) => Container(
+                                    width: 160,
+                                    height: 180,
+                                    color: Colors.grey.shade800,
+                                    child: const Icon(Icons.broken_image, color: Colors.white38, size: 40),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 12),
+                    ] else ...[
+                      Container(
+                        height: 120,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade800,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_not_supported, size: 40, color: Colors.white38),
+                              SizedBox(height: 8),
+                              Text('No images uploaded', style: TextStyle(color: Colors.white38)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // ── Basic Info ──
+                    const Text('Basic Information', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 10),
+                    _detailRow('Name', p.name),
+                    if (p.description != null && p.description!.isNotEmpty)
+                      _detailRow('Description', p.description!),
+                    if (p.gender != null && p.gender!.isNotEmpty)
+                      _detailRow('Gender', p.gender!),
+
+                    const SizedBox(height: 12),
+                    const Divider(color: Colors.white12),
+                    const SizedBox(height: 12),
+
+                    // ── Category ──
+                    const Text('Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 10),
+                    _detailRow('Category', p.categoryName ?? 'N/A'),
+                    if (p.subCategoryName != null)
+                      _detailRow('Sub Category', p.subCategoryName!),
+                    if (p.subSubCategoryName != null)
+                      _detailRow('Sub-Sub Category', p.subSubCategoryName!),
+
+                    const SizedBox(height: 12),
+                    const Divider(color: Colors.white12),
+                    const SizedBox(height: 12),
+
+                    // ── Pricing & Stock ──
+                    const Text('Pricing & Stock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 10),
+                    _detailRow('MRP', '₹${p.price.toStringAsFixed(0)}'),
+                    if (p.offerPrice != null) ...[
+                      _detailRow('Offer Price', '₹${p.offerPrice!.toStringAsFixed(0)}'),
+                      _detailRow('Discount', '${((p.price - p.offerPrice!) / p.price * 100).round()}% off'),
+                    ],
+                    _detailRow('Quantity', '${p.quantity}'),
+
+                    // ── Clothing Attributes ──
+                    if (_hasClothingAttrs(p)) ...[
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 12),
+                      const Text('Product Attributes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 10),
+                      if (p.material != null && p.material!.isNotEmpty) _detailRow('Material', p.material!),
+                      if (p.fit != null && p.fit!.isNotEmpty) _detailRow('Fit', p.fit!),
+                      if (p.pattern != null && p.pattern!.isNotEmpty) _detailRow('Pattern', p.pattern!),
+                      if (p.sleeveLength != null && p.sleeveLength!.isNotEmpty) _detailRow('Sleeve', p.sleeveLength!),
+                      if (p.neckline != null && p.neckline!.isNotEmpty) _detailRow('Neckline', p.neckline!),
+                      if (p.occasion != null && p.occasion!.isNotEmpty) _detailRow('Occasion', p.occasion!),
+                      if (p.careInstructions != null && p.careInstructions!.isNotEmpty) _detailRow('Care', p.careInstructions!),
+                    ],
+
+                    // ── Variants ──
+                    if (p.proVariants.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 12),
+                      const Text('Variants', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 10),
+                      ...p.proVariants.map((v) {
+                        final typeName = v['variantTypeName'] ?? 'Variant';
+                        final items = v['items'] as List? ?? [];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                child: Text('$typeName:', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                              ),
+                              Expanded(
+                                child: Wrap(
+                                  spacing: 6,
+                                  runSpacing: 4,
+                                  children: items.map((item) => Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: primaryColor.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(item.toString(), style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                  )).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+
+                    // ── SKUs ──
+                    if (p.skus.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 12),
+                      Text('SKUs (${p.skus.length})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 10),
+                      ...p.skus.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final sku = entry.value;
+                        final attrs = sku['attributes'] as Map<String, dynamic>? ?? {};
+                        final skuId = sku['skuId'] ?? 'SKU-${idx + 1}';
+                        final stock = sku['stock'] ?? 0;
+                        final skuPrice = sku['price'] ?? 0;
+                        final skuImages = sku['images'] as List? ?? [];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: secondaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(skuId.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                                  ),
+                                  Text('Stock: $stock', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                  const SizedBox(width: 12),
+                                  Text('₹$skuPrice', style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                              if (attrs.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  children: attrs.entries.map((a) => Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text('${a.key}: ${a.value}', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                                  )).toList(),
+                                ),
+                              ],
+                              if (skuImages.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  height: 60,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: skuImages.length,
+                                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                                    itemBuilder: (_, i) => GestureDetector(
+                                      onTap: () => _showFullImage(context, skuImages[i].toString()),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Image.network(
+                                          skuImages[i].toString(),
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (c, e, s) => Container(
+                                            width: 60, height: 60,
+                                            color: Colors.grey.shade800,
+                                            child: const Icon(Icons.broken_image, size: 20, color: Colors.white38),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+
+                    // ── Tags ──
+                    if (p.tags.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 12),
+                      const Text('Tags', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: p.tags.map((t) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(t, style: const TextStyle(color: Colors.tealAccent, fontSize: 12)),
+                        )).toList(),
+                      ),
+                    ],
+
+                    // ── Specifications ──
+                    if (p.specifications.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 12),
+                      const Text('Specifications', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 10),
+                      ...p.specifications.map((s) {
+                        return _detailRow(s['key']?.toString() ?? '', s['value']?.toString() ?? '');
+                      }),
+                    ],
+
+                    // ── Supplier Info ──
+                    const SizedBox(height: 12),
+                    const Divider(color: Colors.white12),
+                    const SizedBox(height: 12),
+                    const Text('Supplier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 10),
+                    _detailRow('Store', p.supplierStoreName ?? 'N/A'),
+                    _detailRow('Owner', p.supplierName ?? 'N/A'),
+                    if (p.supplierEmail != null)
+                      _detailRow('Email', p.supplierEmail!),
+                    if (p.createdAt != null)
+                      _detailRow('Added On', p.createdAt!.substring(0, 10)),
+                  ],
+                ),
+              ),
+            ),
+
+            // Footer Actions
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: const BoxDecoration(
+                color: secondaryColor,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (isPending) ...[
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        provider.approveProduct(p.id);
+                      },
+                      icon: const Icon(Icons.check, size: 18),
+                      label: const Text('Approve'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                    ),
+                    const Gap(10),
+                  ],
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      provider.rejectProduct(p.id);
+                    },
+                    icon: const Icon(Icons.close, size: 18),
+                    label: Text(isPending ? 'Reject' : 'Remove'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                  ),
+                  const Gap(10),
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Close', style: TextStyle(color: Colors.white70)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+bool _hasClothingAttrs(ProductInfo p) {
+  return (p.material != null && p.material!.isNotEmpty) ||
+    (p.fit != null && p.fit!.isNotEmpty) ||
+    (p.pattern != null && p.pattern!.isNotEmpty) ||
+    (p.sleeveLength != null && p.sleeveLength!.isNotEmpty) ||
+    (p.neckline != null && p.neckline!.isNotEmpty) ||
+    (p.occasion != null && p.occasion!.isNotEmpty) ||
+    (p.careInstructions != null && p.careInstructions!.isNotEmpty);
+}
+
+void _showFullImage(BuildContext context, String url) {
+  showDialog(
+    context: context,
+    builder: (ctx) => Dialog(
+      backgroundColor: Colors.transparent,
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              url,
+              fit: BoxFit.contain,
+              errorBuilder: (c, e, s) => Container(
+                width: 300,
+                height: 300,
+                color: Colors.grey.shade900,
+                child: const Icon(Icons.broken_image, color: Colors.white38, size: 60),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.black54,
+              child: IconButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                icon: const Icon(Icons.close, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }

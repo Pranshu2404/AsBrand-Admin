@@ -264,30 +264,68 @@ class SupplierAdminProvider extends ChangeNotifier {
 class ProductInfo {
   final String id;
   final String name;
+  final String? description;
   final double price;
   final double? offerPrice;
   final int quantity;
   final bool isApproved;
   final String? supplierStoreName;
   final String? supplierName;
+  final String? supplierEmail;
   final String? categoryName;
   final String? subCategoryName;
+  final String? subSubCategoryName;
   final String? imageUrl;
+  final List<String> allImageUrls;
   final String? createdAt;
+
+  // Clothing / product attributes
+  final String? gender;
+  final String? material;
+  final String? fit;
+  final String? pattern;
+  final String? sleeveLength;
+  final String? neckline;
+  final String? occasion;
+  final String? careInstructions;
+
+  // Variants & SKUs
+  final List<Map<String, dynamic>> proVariants;
+  final List<Map<String, dynamic>> skus;
+
+  // Tags & specifications
+  final List<String> tags;
+  final List<Map<String, dynamic>> specifications;
 
   ProductInfo({
     required this.id,
     required this.name,
+    this.description,
     required this.price,
     this.offerPrice,
     required this.quantity,
     this.isApproved = false,
     this.supplierStoreName,
     this.supplierName,
+    this.supplierEmail,
     this.categoryName,
     this.subCategoryName,
+    this.subSubCategoryName,
     this.imageUrl,
+    this.allImageUrls = const [],
     this.createdAt,
+    this.gender,
+    this.material,
+    this.fit,
+    this.pattern,
+    this.sleeveLength,
+    this.neckline,
+    this.occasion,
+    this.careInstructions,
+    this.proVariants = const [],
+    this.skus = const [],
+    this.tags = const [],
+    this.specifications = const [],
   });
 
   factory ProductInfo.fromJson(Map<String, dynamic> json) {
@@ -295,21 +333,86 @@ class ProductInfo {
     final supplierProfile = supplier['supplierProfile'] as Map<String, dynamic>? ?? {};
     final category = json['proCategoryId'];
     final subCategory = json['proSubCategoryId'];
+    final subSubCategory = json['proSubSubCategoryId'];
     final images = json['images'] as List? ?? [];
+
+    // Parse all image URLs
+    final allUrls = <String>[];
+    for (final img in images) {
+      if (img is Map && img['url'] != null && img['url'].toString().isNotEmpty) {
+        allUrls.add(img['url'].toString());
+      }
+    }
+
+    // Parse SKU images too
+    final rawSkus = json['skus'] as List? ?? [];
+    final parsedSkus = <Map<String, dynamic>>[];
+    for (final sku in rawSkus) {
+      if (sku is Map<String, dynamic>) {
+        parsedSkus.add(sku);
+        // Collect SKU images into allUrls if no product-level images
+        if (allUrls.isEmpty) {
+          final skuImages = sku['images'] as List? ?? [];
+          for (final url in skuImages) {
+            if (url is String && url.isNotEmpty && !allUrls.contains(url)) {
+              allUrls.add(url);
+            }
+          }
+        }
+      }
+    }
+
+    // Parse proVariants
+    final rawVariants = json['proVariants'] as List? ?? [];
+    final parsedVariants = <Map<String, dynamic>>[];
+    for (final v in rawVariants) {
+      if (v is Map<String, dynamic>) {
+        parsedVariants.add(v);
+      }
+    }
+
+    // Parse tags
+    final rawTags = json['tags'] as List? ?? [];
+    final parsedTags = rawTags.map((t) => t.toString()).toList();
+
+    // Parse specifications
+    final rawSpecs = json['specifications'] as List? ?? [];
+    final parsedSpecs = <Map<String, dynamic>>[];
+    for (final s in rawSpecs) {
+      if (s is Map<String, dynamic>) {
+        parsedSpecs.add(s);
+      }
+    }
 
     return ProductInfo(
       id: json['_id'] ?? '',
       name: json['name'] ?? 'Unnamed',
+      description: json['description'],
       price: (json['price'] ?? 0).toDouble(),
       offerPrice: json['offerPrice'] != null ? (json['offerPrice']).toDouble() : null,
       quantity: json['quantity'] ?? 0,
       isApproved: json['isApproved'] ?? false,
       supplierStoreName: supplierProfile['storeName'],
       supplierName: supplier['name'],
+      supplierEmail: supplier['email'],
       categoryName: category is Map ? category['name'] : null,
       subCategoryName: subCategory is Map ? subCategory['name'] : null,
-      imageUrl: images.isNotEmpty ? images[0]['url'] : null,
+      subSubCategoryName: subSubCategory is Map ? subSubCategory['name'] : null,
+      imageUrl: allUrls.isNotEmpty ? allUrls.first : null,
+      allImageUrls: allUrls,
       createdAt: json['createdAt'],
+      gender: json['gender'],
+      material: json['material'],
+      fit: json['fit'],
+      pattern: json['pattern'],
+      sleeveLength: json['sleeveLength'],
+      neckline: json['neckline'],
+      occasion: json['occasion'],
+      careInstructions: json['careInstructions'],
+      proVariants: parsedVariants,
+      skus: parsedSkus,
+      tags: parsedTags,
+      specifications: parsedSpecs,
     );
   }
 }
