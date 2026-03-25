@@ -283,7 +283,12 @@ class _ProductsTab extends StatelessWidget {
                             const Gap(8),
                             if (isPending) ...[
                               _actionBtn('Approve', Colors.green, () {
-                                _showConfirmDialog(context, 'Approve Product', 'Approve ${p.name}?', () => provider.approveProduct(p.id));
+                                _showApproveProductPriceDialog(context, p, provider);
+                              }),
+                              const Gap(8),
+                            ] else ...[
+                              _actionBtn('Edit Rate', Colors.orange, () {
+                                _showApproveProductPriceDialog(context, p, provider, isUpdate: true);
                               }),
                               const Gap(8),
                             ],
@@ -652,6 +657,10 @@ void _showProductDetailDialog(BuildContext context, ProductInfo p, SupplierAdmin
                       _detailRow('Offer Price', '₹${p.offerPrice!.toStringAsFixed(0)}'),
                       _detailRow('Discount', '${((p.price - p.offerPrice!) / p.price * 100).round()}% off'),
                     ],
+                    if (p.supplierPrice != null)
+                      _detailRow('Supplier MRP', '₹${p.supplierPrice!.toStringAsFixed(0)}'),
+                    if (p.supplierOfferPrice != null)
+                      _detailRow('Supplier Offer', '₹${p.supplierOfferPrice!.toStringAsFixed(0)}'),
                     _detailRow('Quantity', '${p.quantity}'),
 
                     // ── Clothing Attributes ──
@@ -858,12 +867,27 @@ void _showProductDetailDialog(BuildContext context, ProductInfo p, SupplierAdmin
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.of(ctx).pop();
-                        provider.approveProduct(p.id);
+                        _showApproveProductPriceDialog(context, p, provider);
                       },
                       icon: const Icon(Icons.check, size: 18),
                       label: const Text('Approve'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                    ),
+                    const Gap(10),
+                  ] else ...[
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        _showApproveProductPriceDialog(context, p, provider, isUpdate: true);
+                      },
+                      icon: const Icon(Icons.edit_note, size: 18),
+                      label: const Text('Edit Rates'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       ),
@@ -894,6 +918,85 @@ void _showProductDetailDialog(BuildContext context, ProductInfo p, SupplierAdmin
           ],
         ),
       ),
+    ),
+  );
+}
+
+void _showApproveProductPriceDialog(BuildContext context, ProductInfo p, SupplierAdminProvider provider, {bool isUpdate = false}) {
+  final priceCtrl = TextEditingController(text: p.price.toStringAsFixed(0));
+  final offerPriceCtrl = TextEditingController(text: (p.offerPrice ?? p.price).toStringAsFixed(0));
+
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: bgColor,
+      title: Text(isUpdate ? 'Update Rates: ${p.name}' : 'Approve Product: ${p.name}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Current proposed rates:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const SizedBox(height: 4),
+            Text('MRP: ₹${p.price.toStringAsFixed(0)} | Offer: ₹${(p.offerPrice ?? 0).toStringAsFixed(0)}',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const Divider(color: Colors.white24, height: 24),
+            const Text('Set New Rates:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: priceCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Final MRP',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: offerPriceCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Final Offer Price',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: primaryColor)),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+        ElevatedButton(
+          onPressed: () {
+            final price = double.tryParse(priceCtrl.text) ?? p.price;
+            final offerPrice = double.tryParse(offerPriceCtrl.text) ?? (p.offerPrice ?? p.price);
+            
+            if (isUpdate) {
+               provider.updateProductPrice(
+                p.id,
+                price: price,
+                offerPrice: offerPrice,
+              );
+            } else {
+              provider.approveProduct(
+                p.id,
+                price: price,
+                offerPrice: offerPrice,
+                supplierPrice: p.price,
+                supplierOfferPrice: p.offerPrice,
+              );
+            }
+            Navigator.pop(ctx);
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: isUpdate ? Colors.orange : Colors.green),
+          child: Text(isUpdate ? 'Update Rate' : 'Approve & Set Prices', style: const TextStyle(color: Colors.white)),
+        ),
+      ],
     ),
   );
 }

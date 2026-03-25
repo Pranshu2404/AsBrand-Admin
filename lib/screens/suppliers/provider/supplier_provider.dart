@@ -211,13 +211,29 @@ class SupplierAdminProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> approveProduct(String productId) async {
+  Future<void> approveProduct(String productId, {double? price, double? offerPrice, double? supplierPrice, double? supplierOfferPrice}) async {
     try {
+      // First, update the product prices using the standard update endpoint (as DashBoardProvider does)
+      Map<String, dynamic> updateData = {
+        if (price != null) 'price': price.toString(),
+        if (offerPrice != null) 'offerPrice': offerPrice.toString(),
+        if (supplierPrice != null) 'supplierPrice': supplierPrice.toString(),
+        if (supplierOfferPrice != null) 'supplierOfferPrice': supplierOfferPrice.toString(),
+      };
+      
+      // We use POST to products/:id for updates, following DashBoardProvider's pattern
+      await service.addItem(
+        endpointUrl: 'products/$productId',
+        itemData: FormData(updateData),
+      );
+
+      // Then, call the specific approve endpoint to change the product status
       Response response = await service.updateItem(
         endpointUrl: 'supplier/admin/products/approve',
         itemId: productId,
         itemData: {},
       );
+
       if (response.isOk) {
         SnackBarHelper.showSuccessSnackBar('Product approved!');
         await fetchProducts();
@@ -225,7 +241,31 @@ class SupplierAdminProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(response.body?['message'] ?? 'Failed to approve');
       }
     } catch (e) {
-      SnackBarHelper.showErrorSnackBar(e.toString());
+      SnackBarHelper.showErrorSnackBar('An error occurred during approval: $e');
+    }
+  }
+
+  Future<void> updateProductPrice(String productId, {double? price, double? offerPrice}) async {
+    try {
+      // Use the standard product update endpoint for price updates of already approved products
+      Map<String, dynamic> updateData = {
+        if (price != null) 'price': price.toString(),
+        if (offerPrice != null) 'offerPrice': offerPrice.toString(),
+      };
+
+      Response response = await service.addItem(
+        endpointUrl: 'products/$productId',
+        itemData: FormData(updateData),
+      );
+
+      if (response.isOk) {
+        SnackBarHelper.showSuccessSnackBar('Price updated successfully!');
+        await fetchProducts();
+      } else {
+        SnackBarHelper.showErrorSnackBar(response.body?['message'] ?? 'Failed to update price');
+      }
+    } catch (e) {
+      SnackBarHelper.showErrorSnackBar('An error occurred updating price: $e');
     }
   }
 
@@ -267,6 +307,8 @@ class ProductInfo {
   final String? description;
   final double price;
   final double? offerPrice;
+  final double? supplierPrice;
+  final double? supplierOfferPrice;
   final int quantity;
   final bool isApproved;
   final String? supplierStoreName;
@@ -303,6 +345,8 @@ class ProductInfo {
     this.description,
     required this.price,
     this.offerPrice,
+    this.supplierPrice,
+    this.supplierOfferPrice,
     required this.quantity,
     this.isApproved = false,
     this.supplierStoreName,
@@ -390,6 +434,8 @@ class ProductInfo {
       description: json['description'],
       price: (json['price'] ?? 0).toDouble(),
       offerPrice: json['offerPrice'] != null ? (json['offerPrice']).toDouble() : null,
+      supplierPrice: json['supplierPrice'] != null ? (json['supplierPrice']).toDouble() : null,
+      supplierOfferPrice: json['supplierOfferPrice'] != null ? (json['supplierOfferPrice']).toDouble() : null,
       quantity: json['quantity'] ?? 0,
       isApproved: json['isApproved'] ?? false,
       supplierStoreName: supplierProfile['storeName'],
