@@ -14,8 +14,9 @@ import 'screens/main/provider/main_screen_provider.dart';
 import 'screens/notification/provider/notification_provider.dart';
 import 'screens/order/provider/order_provider.dart';
 import 'screens/posters/provider/poster_provider.dart';
-import 'screens/sub_category/provider/sub_category_provider.dart';
 import 'screens/sub_sub_category/provider/sub_sub_category_provider.dart';
+import 'screens/variants/provider/variant_provider.dart';
+import 'screens/settings/provider/settings_provider.dart';
 import 'screens/variants/provider/variant_provider.dart';
 import 'screens/variants_type/provider/variant_type_provider.dart';
 import 'utility/constants.dart';
@@ -42,6 +43,7 @@ void main() async {
     ChangeNotifierProvider(create: (context) => PosterProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => OrderProvider(context.dataProvider)),
     ChangeNotifierProvider(create: (context) => NotificationProvider(context.dataProvider)),
+    ChangeNotifierProvider(create: (context) => SettingsProvider()),
   ], child: MyApp(isLoggedIn: isLoggedIn)));
 }
 

@@ -154,7 +154,14 @@ class SideMenu extends StatelessWidget {
                 isSelected: mainProvider.currentScreenName == 'Users',
                 onTap: () => context.mainScreenProvider.navigateToScreen('Users'),
               ),
-              
+              _buildSectionLabel('SYSTEM'),
+              _buildMenuItem(
+                context: context,
+                title: 'Settings',
+                icon: 'assets/icons/menu_setting.svg',
+                isSelected: mainProvider.currentScreenName == 'Settings',
+                onTap: () => context.mainScreenProvider.navigateToScreen('Settings'),
+              ),
               const SizedBox(height: 20),
             ],
           ),
