@@ -60,10 +60,6 @@ class SettingsProvider extends ChangeNotifier {
         "firstOrderRewardPercent": firstPercent
       };
 
-      // We use PUT /setting as defined in backend. We can use addItem or updateItem, but backend doesn't expect :id for PUT /setting  
-      // I'll use GetConnect directly or bypass HTTP Service if needed, but wait: updateItem in HttpService adds itemId at the end.
-      // So I will just use `addItem` which calls POST, wait! Backend expects PUT.
-      // Let's call PUT directly using GetConnect.
       final response = await service.httpClient.put('${service.baseUrl}/setting', body: data);
       
       if (response.isOk) {
