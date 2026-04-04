@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../utility/color_list.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/extensions.dart';
 
 
 class NotificationListSection extends StatelessWidget {
@@ -55,8 +56,8 @@ class NotificationListSection extends StatelessWidget {
                     dataProvider.notifications.length,
                     (index) => notificationDataRow(dataProvider.notifications[index], index + 1, edit: () {
                       viewNotificationStatics(context, dataProvider.notifications[index]);
-                    }, delete: () {
-                      //TODO: should complete call deleteNotification
+                    }, delete: () async {
+                      await context.notificationProvider.deleteNotification(dataProvider.notifications[index].sId ?? '');
                     }),
                   ),
                 );

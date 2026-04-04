@@ -54,6 +54,14 @@ class ViewNotificationForm extends StatelessWidget {
               ),
               child: Consumer<NotificationProvider>(
                 builder: (context, notificationProvider, child) {
+                  if (notificationProvider.notificationResult == null) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
                   int totalSend = notificationProvider.notificationResult?.successDelivery ?? 0;
                   int totalOpened = notificationProvider.notificationResult?.openedNotification ?? 0;
                   int totalFailed = notificationProvider.notificationResult?.failedDelivery ?? 0;
@@ -117,6 +125,9 @@ class ViewNotificationForm extends StatelessWidget {
 
 // How to show the order popup
 void viewNotificationStatics(BuildContext context, MyNotification? notification) {
+  // Call trackNotification here to fetch details
+  Provider.of<NotificationProvider>(context, listen: false).trackNotification(notification?.notificationId);
+  
   showDialog(
     context: context,
     builder: (BuildContext context) {

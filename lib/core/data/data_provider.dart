@@ -79,8 +79,14 @@ class DataProvider extends ChangeNotifier {
   List<MyNotification> _filteredNotifications = [];
   List<MyNotification> get notifications => _filteredNotifications;
 
+  void updateNotifications(List<MyNotification> notifications) {
+    _allNotifications = notifications;
+    _filteredNotifications = List.from(_allNotifications);
+    notifyListeners();
+  }
+
   String _selectedOrderFilter = 'All order';
-  String get selectedOrderFilter => _selectedOrderFilter;
+  String get selectedOrderFilter => _selectedOrderFilter; 
 
   DataProvider() {
     _loadAllData();
@@ -510,9 +516,20 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //TODO: should complete getAllNotifications
+  void filterNotifications(String keyword) {
+    if (keyword.isEmpty) {
+      _filteredNotifications = List.from(_allNotifications);
+    } else {
+      final lowerKeyword = keyword.toLowerCase();
+      _filteredNotifications = _allNotifications.where((notification) {
+        return (notification.title ?? '').toLowerCase().contains(lowerKeyword) ||
+            (notification.description ?? '').toLowerCase().contains(lowerKeyword);
+      }).toList();
+    }
+    notifyListeners();
+  }
 
-  //TODO: should complete filterNotifications
+
 
   //TODO: should complete getAllOrders
   Future<List<Order>> getAllOrders({bool showSnack = false}) async {

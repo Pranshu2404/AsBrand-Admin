@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import '../../../core/data/data_provider.dart';
 import '../../../utility/constants.dart';
 
 class NotificationHeader extends StatelessWidget {
@@ -18,7 +20,7 @@ class NotificationHeader extends StatelessWidget {
         Spacer(flex: 2),
         Expanded(child: SearchField(
           onChange: (val) {
-            //TODO: should complete call filterNotifications
+            context.read<DataProvider>().filterNotifications(val);
           },
         )),
         ProfileCard()

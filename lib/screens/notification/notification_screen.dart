@@ -6,9 +6,24 @@ import '../../core/data/data_provider.dart';
 import 'components/notification_header.dart';
 import 'components/notification_list_section.dart';
 import 'components/send_notification_form.dart';
+import 'provider/notification_provider.dart';
+import '../../utility/snack_bar_helper.dart';
 
+class NotificationScreen extends StatefulWidget {
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
 
-class NotificationScreen extends StatelessWidget {
+class _NotificationScreenState extends State<NotificationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch notifications whenever the screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().getNotificationInfo();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -57,8 +72,10 @@ class NotificationScreen extends StatelessWidget {
                                     onPressed: dataProvider.isRefreshing ? null : () async {
                                       dataProvider.setRefreshing(true);
                                       try {
-                                        // Notification refresh - no specific API yet
-                                        await Future.delayed(const Duration(milliseconds: 500));
+                                        await context.read<NotificationProvider>().getNotificationInfo();
+                                        SnackBarHelper.showSuccessSnackBar('Notifications refreshed');
+                                      } catch (e) {
+                                        SnackBarHelper.showErrorSnackBar('Fetch failed: $e');
                                       } finally {
                                         dataProvider.setRefreshing(false);
                                       }
