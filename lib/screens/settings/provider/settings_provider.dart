@@ -72,7 +72,8 @@ class SettingsProvider extends ChangeNotifier {
         "handlingCharge": double.tryParse(handlingChargeCtrl.text) ?? 5,
       };
 
-      final response = await service.httpClient.put('${service.baseUrl}/setting', body: data);
+      final response = await GetConnect(timeout: const Duration(seconds: 60))
+          .put('${service.baseUrl}/setting', data);
       
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
