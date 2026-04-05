@@ -16,8 +16,15 @@ class SettingsProvider extends ChangeNotifier {
   bool _isSubmitting = false;
   bool get isSubmitting => _isSubmitting;
 
+  // Reward controllers
   TextEditingController referralRewardCtrl = TextEditingController();
   TextEditingController firstOrderRewardCtrl = TextEditingController();
+
+  // Delivery & charges controllers
+  TextEditingController deliveryWithin1kmCtrl = TextEditingController();
+  TextEditingController deliveryPerKm2to5Ctrl = TextEditingController();
+  TextEditingController deliveryOver5kmCtrl = TextEditingController();
+  TextEditingController handlingChargeCtrl = TextEditingController();
 
   SettingsProvider() {
     getSettings();
@@ -35,6 +42,10 @@ class SettingsProvider extends ChangeNotifier {
           currentSetting = Setting.fromJson(apiResponse.data);
           referralRewardCtrl.text = currentSetting?.referralRewardPercent?.toString() ?? '0';
           firstOrderRewardCtrl.text = currentSetting?.firstOrderRewardPercent?.toString() ?? '0';
+          deliveryWithin1kmCtrl.text = currentSetting?.deliveryChargeWithin1km?.toString() ?? '10';
+          deliveryPerKm2to5Ctrl.text = currentSetting?.deliveryChargePerKm2to5?.toString() ?? '9';
+          deliveryOver5kmCtrl.text = currentSetting?.deliveryChargeOver5km?.toString() ?? '29';
+          handlingChargeCtrl.text = currentSetting?.handlingCharge?.toString() ?? '5';
         }
       } else {
         SnackBarHelper.showErrorSnackBar('Failed to load settings: ${response.body?['message'] ?? response.statusText}');
@@ -52,12 +63,13 @@ class SettingsProvider extends ChangeNotifier {
       _isSubmitting = true;
       notifyListeners();
 
-      double refPercent = double.tryParse(referralRewardCtrl.text) ?? 0;
-      double firstPercent = double.tryParse(firstOrderRewardCtrl.text) ?? 0;
-
       Map<String, dynamic> data = {
-        "referralRewardPercent": refPercent,
-        "firstOrderRewardPercent": firstPercent
+        "referralRewardPercent": double.tryParse(referralRewardCtrl.text) ?? 0,
+        "firstOrderRewardPercent": double.tryParse(firstOrderRewardCtrl.text) ?? 0,
+        "deliveryChargeWithin1km": double.tryParse(deliveryWithin1kmCtrl.text) ?? 10,
+        "deliveryChargePerKm2to5": double.tryParse(deliveryPerKm2to5Ctrl.text) ?? 9,
+        "deliveryChargeOver5km": double.tryParse(deliveryOver5kmCtrl.text) ?? 29,
+        "handlingCharge": double.tryParse(handlingChargeCtrl.text) ?? 5,
       };
 
       final response = await service.httpClient.put('${service.baseUrl}/setting', body: data);
