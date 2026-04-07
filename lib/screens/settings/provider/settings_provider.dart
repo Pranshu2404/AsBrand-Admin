@@ -26,6 +26,11 @@ class SettingsProvider extends ChangeNotifier {
   TextEditingController deliveryOver5kmCtrl = TextEditingController();
   TextEditingController handlingChargeCtrl = TextEditingController();
 
+  // Driver earnings controllers
+  TextEditingController driverPickupFreeKmCtrl = TextEditingController();
+  TextEditingController driverPickupRateCtrl = TextEditingController();
+  TextEditingController driverDropRateCtrl = TextEditingController();
+
   SettingsProvider() {
     getSettings();
   }
@@ -46,6 +51,9 @@ class SettingsProvider extends ChangeNotifier {
           deliveryPerKm2to5Ctrl.text = currentSetting?.deliveryChargePerKm2to5?.toString() ?? '9';
           deliveryOver5kmCtrl.text = currentSetting?.deliveryChargeOver5km?.toString() ?? '29';
           handlingChargeCtrl.text = currentSetting?.handlingCharge?.toString() ?? '5';
+          driverPickupFreeKmCtrl.text = currentSetting?.driverPickupFreeKm?.toString() ?? '1';
+          driverPickupRateCtrl.text = currentSetting?.driverPickupRatePerKm?.toString() ?? '3';
+          driverDropRateCtrl.text = currentSetting?.driverDropRatePerKm?.toString() ?? '12';
         }
       } else {
         SnackBarHelper.showErrorSnackBar('Failed to load settings: ${response.body?['message'] ?? response.statusText}');
@@ -70,6 +78,9 @@ class SettingsProvider extends ChangeNotifier {
         "deliveryChargePerKm2to5": double.tryParse(deliveryPerKm2to5Ctrl.text) ?? 9,
         "deliveryChargeOver5km": double.tryParse(deliveryOver5kmCtrl.text) ?? 29,
         "handlingCharge": double.tryParse(handlingChargeCtrl.text) ?? 5,
+        "driverPickupFreeKm": double.tryParse(driverPickupFreeKmCtrl.text) ?? 1,
+        "driverPickupRatePerKm": double.tryParse(driverPickupRateCtrl.text) ?? 3,
+        "driverDropRatePerKm": double.tryParse(driverDropRateCtrl.text) ?? 12,
       };
 
       final response = await GetConnect(timeout: const Duration(seconds: 60))

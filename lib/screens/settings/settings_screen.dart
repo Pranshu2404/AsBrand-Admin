@@ -43,7 +43,7 @@ class SettingsScreen extends StatelessWidget {
 
                 // Delivery & Charges Card
                 _buildCard(
-                  title: "Delivery & Charges",
+                  title: "Delivery & Charges (User-Facing)",
                   children: [
                     _buildField("Delivery charge within 1 km (₹)", provider.deliveryWithin1kmCtrl, "E.g. 10"),
                     const SizedBox(height: defaultPadding),
@@ -52,6 +52,20 @@ class SettingsScreen extends StatelessWidget {
                     _buildField("Delivery charge over 5 km (₹)", provider.deliveryOver5kmCtrl, "E.g. 29"),
                     const SizedBox(height: defaultPadding),
                     _buildField("Handling charge (₹)", provider.handlingChargeCtrl, "E.g. 5"),
+                  ],
+                ),
+
+                const SizedBox(height: defaultPadding * 2),
+
+                // Driver Earnings Card
+                _buildCard(
+                  title: "Driver Earnings",
+                  children: [
+                    _buildField("Free pickup distance (km) — under this = ₹0", provider.driverPickupFreeKmCtrl, "E.g. 1"),
+                    const SizedBox(height: defaultPadding),
+                    _buildField("Pickup rate per km (₹) — beyond free threshold", provider.driverPickupRateCtrl, "E.g. 3"),
+                    const SizedBox(height: defaultPadding),
+                    _buildField("Drop rate per km (₹) — supplier to user", provider.driverDropRateCtrl, "E.g. 12"),
                   ],
                 ),
 

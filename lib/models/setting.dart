@@ -6,6 +6,10 @@ class Setting {
   double? deliveryChargePerKm2to5;
   double? deliveryChargeOver5km;
   double? handlingCharge;
+  // Driver earnings
+  double? driverPickupFreeKm;
+  double? driverPickupRatePerKm;
+  double? driverDropRatePerKm;
   String? createdAt;
   String? updatedAt;
 
@@ -17,6 +21,9 @@ class Setting {
     this.deliveryChargePerKm2to5,
     this.deliveryChargeOver5km,
     this.handlingCharge,
+    this.driverPickupFreeKm,
+    this.driverPickupRatePerKm,
+    this.driverDropRatePerKm,
     this.createdAt,
     this.updatedAt,
   });
@@ -29,6 +36,9 @@ class Setting {
     deliveryChargePerKm2to5 = json['deliveryChargePerKm2to5']?.toDouble();
     deliveryChargeOver5km = json['deliveryChargeOver5km']?.toDouble();
     handlingCharge = json['handlingCharge']?.toDouble();
+    driverPickupFreeKm = json['driverPickupFreeKm']?.toDouble();
+    driverPickupRatePerKm = json['driverPickupRatePerKm']?.toDouble();
+    driverDropRatePerKm = json['driverDropRatePerKm']?.toDouble();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }
@@ -42,6 +52,9 @@ class Setting {
     data['deliveryChargePerKm2to5'] = deliveryChargePerKm2to5;
     data['deliveryChargeOver5km'] = deliveryChargeOver5km;
     data['handlingCharge'] = handlingCharge;
+    data['driverPickupFreeKm'] = driverPickupFreeKm;
+    data['driverPickupRatePerKm'] = driverPickupRatePerKm;
+    data['driverDropRatePerKm'] = driverDropRatePerKm;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
     return data;
