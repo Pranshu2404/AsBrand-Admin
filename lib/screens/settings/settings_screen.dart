@@ -71,6 +71,18 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: defaultPadding * 2),
 
+                // Payment & Withdrawal Card
+                _buildCard(
+                  title: "Payment & Withdrawal",
+                  children: [
+                    _buildField("Razorpay fee percentage (%) — charged at checkout", provider.razorpayFeePercentCtrl, "E.g. 2"),
+                    const SizedBox(height: defaultPadding),
+                    _buildField("Min driver withdrawal amount (₹)", provider.minWithdrawalAmountCtrl, "E.g. 100"),
+                  ],
+                ),
+
+                const SizedBox(height: defaultPadding * 2),
+
                 // Save button
                 SizedBox(
                   width: double.infinity,
