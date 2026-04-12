@@ -31,6 +31,10 @@ class SettingsProvider extends ChangeNotifier {
   TextEditingController driverPickupRateCtrl = TextEditingController();
   TextEditingController driverDropRateCtrl = TextEditingController();
 
+  // Payment & withdrawal controllers
+  TextEditingController razorpayFeePercentCtrl = TextEditingController();
+  TextEditingController minWithdrawalAmountCtrl = TextEditingController();
+
   SettingsProvider() {
     getSettings();
   }
@@ -54,6 +58,8 @@ class SettingsProvider extends ChangeNotifier {
           driverPickupFreeKmCtrl.text = currentSetting?.driverPickupFreeKm?.toString() ?? '1';
           driverPickupRateCtrl.text = currentSetting?.driverPickupRatePerKm?.toString() ?? '3';
           driverDropRateCtrl.text = currentSetting?.driverDropRatePerKm?.toString() ?? '12';
+          razorpayFeePercentCtrl.text = currentSetting?.razorpayFeePercent?.toString() ?? '2';
+          minWithdrawalAmountCtrl.text = currentSetting?.minWithdrawalAmount?.toString() ?? '100';
         }
       } else {
         SnackBarHelper.showErrorSnackBar('Failed to load settings: ${response.body?['message'] ?? response.statusText}');
@@ -81,6 +87,8 @@ class SettingsProvider extends ChangeNotifier {
         "driverPickupFreeKm": double.tryParse(driverPickupFreeKmCtrl.text) ?? 1,
         "driverPickupRatePerKm": double.tryParse(driverPickupRateCtrl.text) ?? 3,
         "driverDropRatePerKm": double.tryParse(driverDropRateCtrl.text) ?? 12,
+        "razorpayFeePercent": double.tryParse(razorpayFeePercentCtrl.text) ?? 2,
+        "minWithdrawalAmount": double.tryParse(minWithdrawalAmountCtrl.text) ?? 100,
       };
 
       final response = await GetConnect(timeout: const Duration(seconds: 60))
