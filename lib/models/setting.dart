@@ -6,10 +6,12 @@ class Setting {
   double? deliveryChargePerKm2to5;
   double? deliveryChargeOver5km;
   double? handlingCharge;
-  // Driver earnings
   double? driverPickupFreeKm;
   double? driverPickupRatePerKm;
   double? driverDropRatePerKm;
+  // Payment & withdrawal
+  double? razorpayFeePercent;
+  double? minWithdrawalAmount;
   String? createdAt;
   String? updatedAt;
 
@@ -24,6 +26,8 @@ class Setting {
     this.driverPickupFreeKm,
     this.driverPickupRatePerKm,
     this.driverDropRatePerKm,
+    this.razorpayFeePercent,
+    this.minWithdrawalAmount,
     this.createdAt,
     this.updatedAt,
   });
@@ -39,6 +43,8 @@ class Setting {
     driverPickupFreeKm = json['driverPickupFreeKm']?.toDouble();
     driverPickupRatePerKm = json['driverPickupRatePerKm']?.toDouble();
     driverDropRatePerKm = json['driverDropRatePerKm']?.toDouble();
+    razorpayFeePercent = json['razorpayFeePercent']?.toDouble();
+    minWithdrawalAmount = json['minWithdrawalAmount']?.toDouble();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }
@@ -55,6 +61,8 @@ class Setting {
     data['driverPickupFreeKm'] = driverPickupFreeKm;
     data['driverPickupRatePerKm'] = driverPickupRatePerKm;
     data['driverDropRatePerKm'] = driverDropRatePerKm;
+    data['razorpayFeePercent'] = razorpayFeePercent;
+    data['minWithdrawalAmount'] = minWithdrawalAmount;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
     return data;
